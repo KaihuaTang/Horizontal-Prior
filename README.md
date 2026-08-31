@@ -23,13 +23,6 @@ For ease of management, we recommend placing all downloaded ckpt files in the "c
 
 - For Distill Any Depth, their checkpoints can be downloaded from [their github repo](https://github.com/Westlake-AGI-Lab/Distill-Any-Depth) as well. 
 
-- Our checkpoints are not allowed to release due to the confidentiality reasons of the company.
-
-
-# Run a Demo
-
-
-
 # Evaluation
 
 The evaluation scripts are located in the "./scripts" directory. Please note that neither Depth-Anything-v2 nor Distill-Any-Depth has released their official evaluation code. Consequently, we re-implemented these protocols; therefore, our results may differ slightly from those reported in the original papers.
@@ -57,6 +50,11 @@ bash ./scripts/test_hl.sh
 
 # Evaluation Other Methods
 We also put our evaluation codes into other projects, such as GenPercept, Marigold, and PromptDA (visualization only). . Please refer to the "./_eval_others" folder for these scripts.
+
+
+# Confidentiality Policy of the Company
+
+Due to the confidentiality reasons of the company, all checkpoints and most of the codes are not allowed to release or send to the external network.
 
 
 # Citation
