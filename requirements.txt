@@ -1,0 +1,9 @@
+matplotlib
+opencv-python
+pycocotools
+torch
+torchvision
+tqdm
+h5py
+tensorboard
+safetensors

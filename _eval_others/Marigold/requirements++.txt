@@ -1,0 +1,7 @@
+h5py
+opencv-python
+tensorboard
+wandb
+scikit-learn
+xformers==0.0.28
+
