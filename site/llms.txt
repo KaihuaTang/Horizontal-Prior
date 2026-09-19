@@ -1,0 +1,49 @@
+# Breaking the Horizontal Prior (ID-Constraint)
+
+> Official project of the arXiv preprint "Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation" (arXiv:2608.00678, cs.CV, 1 Aug 2026, under review) by Kaihua Tang, Ziqing Xia, Xiaoxu Zheng, Xiaoxue Zhang, Michael Bi Mi, Zhan Xu and Dave Zhenyu Chen (Tongji University; Huawei Technologies Ltd.). The Horizontal Prior is the phenomenon that naturally collected real-world images are captured in approximately horizontal orientations, which gives a long-tailed distribution of absolute camera roll angles and makes monocular depth estimation (MDE) models degrade on rolled images. Invariant Depth Constraint (ID-Constraint) is a training-time supervision strategy that fine-tunes the depth backbone jointly with six rotation-invariant auxiliary tasks; the auxiliary heads are discarded after training, so the inference architecture is unchanged.
+
+Key facts (all numbers are from the paper, arXiv:2608.00678v1):
+
+- Evidence for the Horizontal Prior: 20,000 random SA-1B images show a long-tailed distribution of absolute roll angle and a horizontally structured average depth map (Figure 1); multiple MDE models degrade as controlled roll increases (Table 2); model behavior over fine-grained roll intervals correlates with the roll distribution (Figure 5, Appendix C).
+- Roll robustness is defined as f(T_theta(I)) ≈ T_theta(f(I)) for an in-plane rotation T_theta with theta > 0° (Appendix E).
+- Benchmark: five datasets (DIODE 771, ScanNet 800, ETH3D 454, KITTI 652, NYUv2 654 valid test samples) under four roll settings: Horizontal (0°), Shaking [0°, 15°], Rolling [0°, 45°], Tipping [0°, 90°]. Metrics: AbsRel (lower is better) and δ1 (higher is better), scale- and shift-invariant; DAv2, DistillAD and the paper's models are evaluated in disparity space, Marigold and GenPercept in depth space.
+- Degradation of existing models, AbsRel / δ1 from Horizontal to Tipping, averaged across five benchmarks (Table 2): Depth Anything V2 0.096 / 0.922 → 0.127 / 0.883 (AbsRel 32% worse); Distill Any Depth 0.099 / 0.920 → 0.131 / 0.878; Marigold 0.130 / 0.886 → 0.200 / 0.765; GenPercept 0.130 / 0.891 → 0.185 / 0.794. Depth Anything 3 and PromptDA are shown to fail qualitatively (Figures 9 and 4); no quantitative results are reported for them.
+- Baseline: distillation pipeline of Distill Any Depth with Depth Anything V2 (ViT-Large) as teacher; student with the same DINOv2 ViT-L encoder (features from layers 4, 11, 17, 23) and a DPT head; loss L = L_distill + L_gm; 200,000 unlabeled SA-1B images; input 560×560; AdamW with learning rate 5e-6 (encoder) and 5e-5 (heads); 1 epoch, batch size 8.
+- Remedy 1, re-balanced augmentation: rotate each training image by an angle uniformly sampled from [−90°, 90°] with a random center crop keeping 40% to 100% of the image; 10% of samples un-augmented.
+- Remedy 2, horizon leveling: a ViT-Small roll-angle predictor outputs (cos theta, sin theta) and the image is rotated back; two-stage training with data denoising; best mean roll error 25.90° (Table 1); PerspectiveFields adapted to the same test data: 18.7° (Appendix E).
+- ID-Constraint tasks: four region-level tasks selected from the DepthCues benchmark (light and shadow 4,716 samples, occlusion 24,402, size 1,986, texture gradient 4,000; BCE loss) and two pixel-level tasks introduced by the paper (local peak Z^p = (D^t ⊗ K_1) / (M^vp ⊗ K_1) − D^t and local slope Z^s = 1/4 Σ_d |D^t ⊗ K_d| with 5×5 kernels; L1 loss; shared DPT head with hidden dimension 128; 20,000 SA-1B images). ID losses are added with weight 1.0; about 107,842 effective ID-Constraint samples per epoch.
+- Main result, AbsRel / δ1 (Table 2): ID-Constraint is best in Shaking 0.103 / 0.916, Rolling 0.104 / 0.915 and Tipping 0.106 / 0.913; in Horizontal it obtains 0.099 / 0.920 while DAv2 is best with 0.096 / 0.922. Re-implemented baseline: 0.100 / 0.920, 0.113 / 0.901, 0.125 / 0.887, 0.135 / 0.873. Re-balanced augmentation: 0.104 / 0.918, 0.111 / 0.904, 0.114 / 0.901, 0.119 / 0.897. Horizon leveling: 0.100 / 0.920, 0.108 / 0.910, 0.110 / 0.907, 0.112 / 0.905.
+- Ablation in the Tipping setting (Table 4): baseline 0.135 / 0.873; + re-balanced augmentation 0.119 / 0.897; + region and pixel ID losses 0.114 / 0.903; horizon leveling alone 0.112 / 0.905; augmentation + leveling 0.110 / 0.909; + region losses 0.108 / 0.910; + pixel losses 0.107 / 0.912; all 0.106 / 0.913. The ID-Constraint row of Tables 2 and 3 coincides with this full configuration (re-balanced augmentation during training, horizon leveling at inference).
+- Tipping per benchmark for ID-Constraint (Table 3): DIODE 0.255 / 0.753, ScanNet 0.051 / 0.971, ETH3D 0.051 / 0.972, KITTI 0.086 / 0.931, NYUv2 0.055 / 0.971.
+- Cost (Appendix E): ID-Constraint adds zero inference parameters; horizon leveling uses a ViT-S predictor (about 21M parameters) and adds 15.4 ms latency on one A100 with batch size 1. Paired bootstrap (1K per-image resamples, Tipping), ID-Constraint vs. augmentation + leveling: Δδ1 = +0.004, 95% CI [0.0026, 0.0052]; ΔAbsRel = −0.004, 95% CI [−0.0047, −0.0031].
+- Environment reported in the paper: Python 3.12, PyTorch 2.7, TorchVision 0.22, a single A100-SXM4-80GB GPU. Code license: Apache-2.0.
+- Release status: because of the confidentiality policy of the company where the work was carried out, and because the author who maintains the repository has left that company, all trained checkpoints and most of the code (including all training code) cannot be released. The repository contains the evaluation code for the benchmark (test.py, test_hl.py, roll-rotated dataloaders for the five datasets), inference-time model definitions, a paired bootstrap script and SA-1B data-list scripts. Public Depth Anything V2 and Distill Any Depth checkpoints can be evaluated with it.
+
+## Paper
+
+- [arXiv abstract](https://arxiv.org/abs/2608.00678): abstract, authors, versions
+- [arXiv PDF](https://arxiv.org/pdf/2608.00678): full paper with appendix
+
+## Code
+
+- [GitHub repository](https://github.com/KaihuaTang/Horizontal-Prior): evaluation code for roll-robust monocular depth estimation (PyTorch); no checkpoints, no training code
+- [README](https://github.com/KaihuaTang/Horizontal-Prior/blob/main/README.md): method summary, release status, paper-to-code map, full result tables
+
+## Project page
+
+- [English](https://kaihuatang.github.io/Horizontal-Prior/): definitions, method, charts, result tables, Q&A
+- [中文](https://kaihuatang.github.io/Horizontal-Prior/zh/): 中文简介、主要结果、常见问题、开源范围说明
+
+## Citation
+
+```bibtex
+@misc{tang2026breakinghorizontalpriorlongtailed,
+      title={Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation},
+      author={Kaihua Tang and Ziqing Xia and Xiaoxu Zheng and Xiaoxue Zhang and Michael Bi Mi and Zhan Xu and Dave Zhenyu Chen},
+      year={2026},
+      eprint={2608.00678},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2608.00678},
+}
+```

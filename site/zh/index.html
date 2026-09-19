@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>打破水平先验（Horizontal Prior）：抗相机滚转的单目深度估计与 ID-Constraint | arXiv 2026</title>
+<meta name="description" content="水平先验（Horizontal Prior）指真实图像绝大多数接近水平拍摄、滚转角呈长尾分布，导致 Depth Anything V2 等单目深度估计模型在相机滚转时精度下降。不变深度约束（ID-Constraint）用六个旋转不变的辅助任务微调深度主干，在最大 90° 滚转下 AbsRel 为 0.106（DAv2 为 0.127），且不增加推理参数。">
+<meta name="keywords" content="单目深度估计, 水平先验, 相机滚转鲁棒性, 长尾分布偏差, 不变深度约束, ID-Constraint, 水平校正, Depth Anything V2, DINOv2, DepthCues, monocular depth estimation, horizontal prior">
+<meta name="author" content="Kaihua Tang, Ziqing Xia, Xiaoxu Zheng, Xiaoxue Zhang, Michael Bi Mi, Zhan Xu, Dave Zhenyu Chen">
+<link rel="canonical" href="https://kaihuatang.github.io/Horizontal-Prior/zh/">
+<link rel="alternate" hreflang="en" href="https://kaihuatang.github.io/Horizontal-Prior/">
+<link rel="alternate" hreflang="zh-CN" href="https://kaihuatang.github.io/Horizontal-Prior/zh/">
+<link rel="alternate" hreflang="x-default" href="https://kaihuatang.github.io/Horizontal-Prior/">
+<link rel="alternate" type="text/markdown" title="LLM-readable summary" href="../llms.txt">
+
+<meta name="citation_title" content="Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation">
+<meta name="citation_author" content="Tang, Kaihua">
+<meta name="citation_author" content="Xia, Ziqing">
+<meta name="citation_author" content="Zheng, Xiaoxu">
+<meta name="citation_author" content="Zhang, Xiaoxue">
+<meta name="citation_author" content="Mi, Michael Bi">
+<meta name="citation_author" content="Xu, Zhan">
+<meta name="citation_author" content="Chen, Dave Zhenyu">
+<meta name="citation_publication_date" content="2026/08/01">
+<meta name="citation_arxiv_id" content="2608.00678">
+<meta name="citation_pdf_url" content="https://arxiv.org/pdf/2608.00678">
+<meta name="citation_abstract_html_url" content="https://arxiv.org/abs/2608.00678">
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="打破水平先验：抗相机滚转的单目深度估计">
+<meta property="og:description" content="深度基础模型在相机滚转时会明显退化。论文将其归因于一种长尾朝向偏差——水平先验，并提出不变深度约束（ID-Constraint）。">
+<meta property="og:url" content="https://kaihuatang.github.io/Horizontal-Prior/zh/">
+<meta property="og:image" content="https://kaihuatang.github.io/Horizontal-Prior/assets/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "ScholarlyArticle",
+   "@id": "https://arxiv.org/abs/2608.00678",
+   "headline": "Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation",
+   "name": "Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation",
+   "author": [
+    {
+     "@type": "Person",
+     "name": "Kaihua Tang",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Tongji University"
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Ziqing Xia",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Tongji University"
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Xiaoxu Zheng",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Xiaoxue Zhang",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Michael Bi Mi",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Zhan Xu",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Dave Zhenyu Chen",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    }
+   ],
+   "datePublished": "2026-08-01",
+   "dateModified": "2026-08-01",
+   "inLanguage": "en",
+   "url": "https://arxiv.org/abs/2608.00678",
+   "sameAs": [
+    "https://arxiv.org/pdf/2608.00678",
+    "https://kaihuatang.github.io/Horizontal-Prior/"
+   ],
+   "identifier": {
+    "@type": "PropertyValue",
+    "propertyID": "arXiv",
+    "value": "2608.00678"
+   },
+   "keywords": "monocular depth estimation, horizontal prior, camera roll robustness, long-tailed distribution bias, Invariant Depth Constraint, ID-Constraint, horizon leveling, Depth Anything V2",
+   "abstract": "Despite recent advances in Monocular Depth Estimation, state-of-the-art depth foundation models remain vulnerable to robustness issues. Particularly, even slight camera rolls can result in substantial degradation in depth estimations. We attribute this problem to a previously overlooked phenomenon, termed the Horizontal Prior, which is a manifestation of long-tailed distribution bias: most training images are captured in approximately horizontal orientations due to human visual preferences and photographic habits. While intuitive remedies such as re-balanced data augmentation and horizon leveling provide partial improvements, they fail to fully address the issue. In this paper, we introduce Invariant Depth Constraint (ID-Constraint), a training-time supervision strategy that improves roll robustness by fine-tuning and jointly regularizing the depth backbone with a series of geometric and spatial reasoning tasks. These auxiliary objectives encourage the backbone to learn rotation-stable, depth-relevant representations, while the auxiliary prediction heads are discarded after training, leaving the original inference architecture unchanged. Extensive experiments on five benchmark datasets across four roll settings demonstrate the effectiveness of the proposed method."
+  },
+  {
+   "@type": "SoftwareSourceCode",
+   "name": "Horizontal-Prior",
+   "description": "Evaluation code for roll-robust monocular depth estimation: DIODE, ScanNet, ETH3D, KITTI and NYUv2 under four roll settings (Horizontal, Shaking, Rolling, Tipping) for Depth Anything V2 architecture checkpoints, with optional horizon leveling, in PyTorch. Trained checkpoints and training code are not released.",
+   "codeRepository": "https://github.com/KaihuaTang/Horizontal-Prior",
+   "programmingLanguage": "Python",
+   "license": "https://www.apache.org/licenses/LICENSE-2.0",
+   "citation": {
+    "@id": "https://arxiv.org/abs/2608.00678"
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "inLanguage": "zh-CN",
+   "url": "https://kaihuatang.github.io/Horizontal-Prior/zh/",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "单目深度估计中的水平先验（Horizontal Prior）是什么？",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "水平先验指自然采集的真实图像绝大多数以近似水平的朝向拍摄，导致绝对滚转角呈长尾分布；因此滚转角 θ 大于 0° 的图像的深度估计误差显著大于对应的水平图像。论文将其视为单目深度估计中一种新的长尾偏差来源，并给出三方面证据：两万张 SA-1B 图像的滚转角分布与平均深度图、多个 MDE 模型随滚转增大而退化、以及细粒度滚转角分析中模型表现与滚转角分布的相关性。"
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "相机滚转时，Depth Anything V2 等深度模型会退化多少？",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "在五个基准数据集上平均，Depth Anything V2 从 Horizontal 到 Tipping [0°, 90°] 设置，AbsRel 从 0.096 升至 0.127（变差 32%），δ1 从 0.922 降至 0.883（下降 3.9 个点）。对论文图 1(a) 中滚转 45° 的单张图像，AbsRel 变差 45.7%（0.138 到 0.201），δ1 下降 8.7 个点（0.869 到 0.782）。Marigold 的 AbsRel 从 0.130 升至 0.200，GenPercept 从 0.130 升至 0.185，Distill Any Depth 从 0.099 升至 0.131（Table 2 与附录 E）。"
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "为什么只做旋转增强或只做水平校正还不够？",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "再平衡增强把 Tipping 设置的 AbsRel 从 0.135 降到 0.119，但在水平图像上略差于基线（0.104 对 0.100），论文认为这是因为 DINOv2 预训练时没有这类增强，会扩大预训练与微调数据之间的域差异。水平校正依赖滚转角估计，而仅凭单张图像估计滚转角并不准确：论文中最好的预测模型平均误差为 25.90°（Table 1），改用 PerspectiveFields 后为 18.7°（附录 E）。仅用水平校正在 Tipping 设置下 AbsRel 为 0.112，ID-Constraint 为 0.106（Table 2）。"
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "ID-Constraint 会让推理变慢或模型变大吗？",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "不会。ID-Constraint 不增加任何推理参数，因为辅助的 ID Heads 只在训练阶段使用，训练后即被丢弃。论文报告的配置中唯一的额外推理开销来自水平校正：一个约 21M 参数的 ViT-S 滚转角预测器，在单张 A100、batch size 为 1 时增加 15.4 ms 延迟（附录 E）。"
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "ID-Constraint 会降低普通水平图像上的精度吗？",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "在 Horizontal 设置下，ID-Constraint 的 AbsRel 为 0.099、δ1 为 0.920，相同条件下训练的复现基线为 0.100 和 0.920（Table 2）。Depth Anything V2 在该设置下略好（0.096 和 0.922），论文将其归因于复现基线本身较弱，因为 DAv2 的训练代码并未公开。"
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "模型权重和训练代码开源了吗？",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "没有。由于本工作所在公司的保密规定，且维护该仓库的作者已从该公司离职，所有训练好的模型权重以及大部分代码（包括全部训练代码）都无法公开。公开仓库包含五个数据集、四种滚转设置的评测代码、推理所需的模型结构定义、paired bootstrap 置信区间脚本以及 SA-1B 数据列表脚本；用公开的 Depth Anything V2 和 Distill Any Depth 权重即可运行对应评测。"
+     }
+    }
+   ]
+  }
+ ]
+}
+</script>
+</head>
+<body>
+
+<nav class="nav" aria-label="章节">
+  <div class="wrap">
+    <a class="brand" href="#top" lang="en">Horizontal <i>Prior</i></a>
+    <ul>
+      <li><a href="#abstract">摘要</a></li>
+      <li><a href="#method">方法</a></li>
+      <li><a href="#results">结果</a></li>
+      <li><a href="#qa">问答</a></li>
+      <li><a href="#code">代码</a></li>
+      <li><a href="#cite">引用</a></li>
+      <li><a class="lang" href="../" hreflang="en" lang="en">English</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <p class="tag"><b>arXiv:2608.00678</b> · cs.CV · 2026-08-01 · 预印本，投稿中</p>
+    <h1 lang="en">Breaking the <em>Horizontal Prior</em>: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation</h1>
+    <p class="sub">中文译名（非官方翻译）：打破水平先验——从长尾朝向偏差到抗滚转的单目深度估计</p>
+    <div class="horizon" aria-hidden="true"></div>
+    <p class="authors" lang="en">
+      <span>Kaihua Tang<sup>1</sup>,</span> <span>Ziqing Xia<sup>1</sup>（通讯作者）,</span> <span>Xiaoxu Zheng<sup>2</sup>,</span> <span>Xiaoxue Zhang<sup>2</sup>,</span> <span>Michael Bi Mi<sup>2</sup>,</span> <span>Zhan Xu<sup>2</sup>,</span> <span>Dave Zhenyu Chen<sup>2</sup></span>
+    </p>
+    <p class="affil" lang="en"><sup>1</sup>Tongji University &nbsp; <sup>2</sup>Huawei Technologies Ltd.</p>
+    <div class="btns">
+      <a class="btn primary" href="https://arxiv.org/abs/2608.00678">论文 · arXiv</a>
+      <a class="btn" href="https://arxiv.org/pdf/2608.00678">PDF</a>
+      <a class="btn" href="https://github.com/KaihuaTang/Horizontal-Prior">代码 · GitHub</a>
+      <a class="btn" href="#cite">BibTeX</a>
+    </div>
+    <p class="notice"><strong>代码为部分开源。</strong>由于本工作所在公司的保密规定，训练好的模型权重以及大部分代码（包括全部训练代码）无法公开；仓库中公开的是滚转鲁棒性评测代码。<a href="#code">查看具体开源范围</a>。</p>
+  </div>
+</header>
+
+<main>
+
+<section id="intro" aria-label="定义">
+  <div class="wrap defs">
+    <div class="def">
+      <h2>什么是水平先验（Horizontal Prior）？</h2>
+      <p><strong>水平先验</strong>指这样一种现象：自然采集的真实图像绝大多数是接近水平拍摄的，绝对滚转角（roll angle）呈长尾分布。在这类数据上训练的单目深度估计（Monocular Depth Estimation, MDE）模型，对发生滚转的图像的深度误差显著大于对应的水平图像。以 Depth Anything V2 为例，测试图像从水平变为最大 90° 滚转时，AbsRel 从 0.096 升至 0.127，变差 32%（论文 Table 2 与附录 E）。</p>
+    </div>
+    <div class="def">
+      <h2>什么是 ID-Constraint？</h2>
+      <p><strong>不变深度约束（Invariant Depth Constraint, ID-Constraint）</strong>是一种只在训练阶段使用的监督策略：用六个旋转不变的辅助任务与深度损失联合微调深度主干网络，其中四个是区域级任务（光影、遮挡、大小、纹理梯度），两个是像素级任务（local peak、local slope）。训练结束后辅助预测头被丢弃，推理结构保持不变。在基准的三种滚转设置下它都取得最优结果，例如最大 90° 滚转时 AbsRel 为 0.106、δ<sub>1</sub> 为 0.913（Table 2）。</p>
+    </div>
+  </div>
+</section>
+
+<section id="cite">
+  <div class="wrap">
+    <p class="eyebrow">引用</p>
+    <h2>引用本文</h2>
+    <div class="cite prose">
+      <button class="copy" type="button" data-copy="bibtex" data-done="已复制">复制</button>
+<pre id="bibtex" lang="en"><code>@misc{tang2026breakinghorizontalpriorlongtailed,
+      title={Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation},
+      author={Kaihua Tang and Ziqing Xia and Xiaoxu Zheng and Xiaoxue Zhang and Michael Bi Mi and Zhan Xu and Dave Zhenyu Chen},
+      year={2026},
+      eprint={2608.00678},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2608.00678},
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="abstract">
+  <div class="wrap">
+    <p class="eyebrow">摘要</p>
+    <h2>摘要（中文翻译）</h2>
+    <div class="prose">
+      <p><em>以下为论文英文摘要的中文翻译，仅供参考，请以 <a href="https://arxiv.org/abs/2608.00678">arXiv 上的英文原文</a>为准。</em></p>
+      <p>尽管单目深度估计近年来进展显著，最先进的深度基础模型仍然存在鲁棒性问题。尤其是，即使轻微的相机滚转也会导致深度估计明显退化。我们将这一问题归因于一个此前被忽视的现象，称为水平先验（Horizontal Prior），它是长尾分布偏差的一种表现：由于人类的视觉偏好和摄影习惯，大多数训练图像都是以近似水平的朝向拍摄的。再平衡数据增强和水平校正等直观的补救方法能带来部分改善，但无法彻底解决问题。本文提出不变深度约束（Invariant Depth Constraint, ID-Constraint），这是一种训练阶段的监督策略，通过一系列几何与空间推理任务对深度主干网络进行微调和联合正则化，从而提升对滚转的鲁棒性。这些辅助目标促使主干网络学习对旋转稳定、与深度相关的表征；辅助预测头在训练后被丢弃，原有的推理结构保持不变。在五个基准数据集、四种滚转设置上的大量实验证明了所提方法的有效性。</p>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <p class="eyebrow">方法</p>
+    <h2>两种直观方案，以及对特征的约束</h2>
+    <figure class="paper-fig narrow">
+      <img src="../assets/fig1-horizontal-prior.jpg" width="968" height="1064" loading="lazy" alt="论文图 1：(a) 同一室内场景发生滚转后深度预测退化；(b) 随机真实图像的地平线都接近水平；(c) 两万张随机真实图像的平均深度图；(d) 两万张随机图像绝对滚转角的长尾分布直方图。">
+      <figcaption>论文图 1。水平先验的证据：(a) 非水平朝向的图像深度预测明显退化；(b) 随机采样的真实图像大多是水平的；(c) 两万张随机真实图像的平均深度图；(d) 绝对滚转角的长尾分布。</figcaption>
+    </figure>
+    <div class="prose">
+      <ul>
+        <li><strong>基线（Baseline）</strong>：沿用 Distill Any Depth 的蒸馏流程，以 Depth Anything V2（ViT-Large）为教师模型，在 200,000 张无标注 SA-1B 图像上训练；学生模型使用相同的 DINOv2 编码器（取第 4、11、17、23 层特征）和 DPT 解码头。</li>
+        <li><strong>再平衡增强（Re-balanced Augmentation）</strong>：训练时对每张图像在 [−90°, 90°] 内均匀采样角度并旋转，同时随机中心裁剪保留 40% 到 100% 的原图尺寸，以避免模型利用填充边界的捷径；保留 10% 的样本不做增强。</li>
+        <li><strong>水平校正（Horizon Leveling）</strong>：用一个 ViT-Small 滚转角预测模型输出二维向量 (cos θ, sin θ)，再把图像按预测角度转正。该模型采用带数据去噪的两阶段训练；即便如此，最好的模型平均误差仍有 25.90°（Table 1）。</li>
+        <li><strong>ID-Constraint</strong>：在随机旋转的输入上，用 ID Heads 和 ID Losses 与深度损失联合优化 ViT 编码器，ID 损失以权重 1.0 直接加到总损失上。区域级任务选自 DepthCues 基准中标签不随旋转改变的四个任务（BCE 损失）；像素级任务 local peak（5×5 邻域平均有效深度减去该像素深度）和 local slope（四个方向上深度梯度绝对值的平均）由教师深度图计算得到（L1 损失），共用一个隐藏维度为 128 的 DPT 头。推理时丢弃所有 ID Heads。</li>
+      </ul>
+    </div>
+    <figure class="paper-fig narrow">
+      <img src="../assets/fig3-id-constraint.png" width="970" height="393" loading="lazy" alt="论文图 3：输入图像经过 ViT 编码器，DPT 头输出深度图，同时辅助的 ID Heads 连接 ID Losses（区域级任务用 BCE 损失，像素级任务用 L1 损失）。">
+      <figcaption>论文图 3。带辅助 ID Heads 的 ID-Constraint 框架。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <p class="eyebrow">结果</p>
+    <h2>主要结果</h2>
+    <p class="prose">所有数字均摘自论文 arXiv:2608.00678v1。四种滚转设置为：Horizontal (0°，即常规测试设置)、Shaking [0°, 15°]、Rolling [0°, 45°]、Tipping [0°, 90°]。AbsRel 越低越好，δ<sub>1</sub> 越高越好；<b>粗体</b>为最优（与论文一致）；带星号的模型由作者用重新实现的评测代码评测；高亮行为作者训练的方法。</p>
+
+    <div class="charts">
+      <figure class="chart">
+        <h3>已有 MDE 模型</h3>
+        <ul class="legend"><li><i style="background:var(--s1)"></i>Marigold</li><li><i style="background:var(--s2)"></i>GenPercept</li><li><i style="background:var(--s3)"></i>DistillAD</li><li><i style="background:var(--s4)"></i>DAv2</li></ul>
+        <svg class="llc" viewBox="0 0 540 310" role="img" aria-label="AbsRel of four existing monocular depth estimation models under the four roll settings (Table 2 of the paper); lower is better, all four get worse as the roll range widens" data-chart='{"x": ["Horizontal|0°", "Shaking|[0°, 15°]", "Rolling|[0°, 45°]", "Tipping|[0°, 90°]"], "series": [{"name": "Marigold", "color": "var(--s1,#2a78d6)", "v": ["0.130", "0.146", "0.171", "0.200"]}, {"name": "GenPercept", "color": "var(--s2,#eb6834)", "v": ["0.130", "0.143", "0.164", "0.185"]}, {"name": "DistillAD", "color": "var(--s3,#1baf7a)", "v": ["0.099", "0.113", "0.124", "0.131"]}, {"name": "DAv2", "color": "var(--s4,#eda100)", "v": ["0.096", "0.109", "0.119", "0.127"]}]}'><style>.llc text{font:12px system-ui,sans-serif;font-family:inherit;fill:var(--ink-2,#5a544a)}.llc .v{fill:var(--ink,#16130f);font-weight:600;font-size:11.5px}.llc .nm{fill:var(--ink,#16130f)}.llc .grid{stroke:var(--rule,#d9d2c3);stroke-width:1}.llc .line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.llc .dot{stroke:var(--paper,#fff);stroke-width:2}.llc .cross{stroke:var(--ink-2,#888);stroke-width:1;stroke-dasharray:3 3;visibility:hidden}</style><line class="grid" x1="44" x2="340" y1="248.0" y2="248.0"/><text x="36" y="252.0" text-anchor="end">0.08</text><line class="grid" x1="44" x2="340" y1="170.7" y2="170.7"/><text x="36" y="174.7" text-anchor="end">0.12</text><line class="grid" x1="44" x2="340" y1="93.3" y2="93.3"/><text x="36" y="97.3" text-anchor="end">0.16</text><line class="grid" x1="44" x2="340" y1="16.0" y2="16.0"/><text x="36" y="20.0" text-anchor="end">0.20</text><text x="66.0" y="268" text-anchor="middle">Horizontal</text><text x="66.0" y="283" text-anchor="middle" style="font-size:11px">0°</text><text x="153.3" y="268" text-anchor="middle">Shaking</text><text x="153.3" y="283" text-anchor="middle" style="font-size:11px">[0°, 15°]</text><text x="240.7" y="268" text-anchor="middle">Rolling</text><text x="240.7" y="283" text-anchor="middle" style="font-size:11px">[0°, 45°]</text><text x="328.0" y="268" text-anchor="middle">Tipping</text><text x="328.0" y="283" text-anchor="middle" style="font-size:11px">[0°, 90°]</text><text x="44" y="304" text-anchor="start" style="font-size:11px">Roll setting · AbsRel ↓, averaged across five benchmarks (Table 2)</text><line class="cross" x1="0" x2="0" y1="16" y2="248"/><polyline class="line" stroke="var(--s1,#2a78d6)" points="66.0,151.3 153.3,120.4 240.7,72.1 328.0,16.0"/><polyline class="line" stroke="var(--s2,#eb6834)" points="66.0,151.3 153.3,126.2 240.7,85.6 328.0,45.0"/><polyline class="line" stroke="var(--s3,#1baf7a)" points="66.0,211.3 153.3,184.2 240.7,162.9 328.0,149.4"/><polyline class="line" stroke="var(--s4,#eda100)" points="66.0,217.1 153.3,191.9 240.7,172.6 328.0,157.1"/><circle class="dot" cx="66.0" cy="151.3" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="153.3" cy="120.4" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="240.7" cy="72.1" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="328.0" cy="16.0" r="5" fill="var(--s1,#2a78d6)"/><text class="nm" x="340.0" y="20.0">Marigold <tspan class="v">0.200</tspan></text><circle class="dot" cx="66.0" cy="151.3" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="153.3" cy="126.2" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="240.7" cy="85.6" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="328.0" cy="45.0" r="5" fill="var(--s2,#eb6834)"/><text class="nm" x="340.0" y="49.0">GenPercept <tspan class="v">0.185</tspan></text><circle class="dot" cx="66.0" cy="211.3" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="153.3" cy="184.2" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="240.7" cy="162.9" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="328.0" cy="149.4" r="5" fill="var(--s3,#1baf7a)"/><text class="nm" x="340.0" y="153.4">DistillAD <tspan class="v">0.131</tspan></text><circle class="dot" cx="66.0" cy="217.1" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="153.3" cy="191.9" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="240.7" cy="172.6" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="328.0" cy="157.1" r="5" fill="var(--s4,#eda100)"/><text class="nm" x="340.0" y="171.4">DAv2 <tspan class="v">0.127</tspan></text><rect class="hit" data-i="0" x="22.3" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="1" x="109.7" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="2" x="197.0" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="3" x="284.3" y="16" width="87.3" height="232" fill="transparent"/></svg>
+        <div class="tip"></div>
+      </figure>
+      <figure class="chart">
+        <h3>复现基线与三种方案</h3>
+        <ul class="legend"><li><i style="background:var(--s1)"></i>Baseline</li><li><i style="background:var(--s2)"></i>Re-balanced Aug</li><li><i style="background:var(--s3)"></i>Horizon Leveling</li><li><i style="background:var(--s4)"></i>ID-Constraint</li></ul>
+        <svg class="llc" viewBox="0 0 540 310" role="img" aria-label="AbsRel of the re-implemented baseline, re-balanced augmentation, horizon leveling and ID-Constraint under the four roll settings (Table 2 of the paper); lower is better, ID-Constraint stays nearly flat" data-chart='{"x": ["Horizontal|0°", "Shaking|[0°, 15°]", "Rolling|[0°, 45°]", "Tipping|[0°, 90°]"], "series": [{"name": "Baseline", "color": "var(--s1,#2a78d6)", "v": ["0.100", "0.113", "0.125", "0.135"]}, {"name": "Re-balanced Aug", "color": "var(--s2,#eb6834)", "v": ["0.104", "0.111", "0.114", "0.119"]}, {"name": "Horizon Leveling", "color": "var(--s3,#1baf7a)", "v": ["0.100", "0.108", "0.110", "0.112"]}, {"name": "ID-Constraint", "color": "var(--s4,#eda100)", "v": ["0.099", "0.103", "0.104", "0.106"]}]}'><style>.llc text{font:12px system-ui,sans-serif;font-family:inherit;fill:var(--ink-2,#5a544a)}.llc .v{fill:var(--ink,#16130f);font-weight:600;font-size:11.5px}.llc .nm{fill:var(--ink,#16130f)}.llc .grid{stroke:var(--rule,#d9d2c3);stroke-width:1}.llc .line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.llc .dot{stroke:var(--paper,#fff);stroke-width:2}.llc .cross{stroke:var(--ink-2,#888);stroke-width:1;stroke-dasharray:3 3;visibility:hidden}</style><line class="grid" x1="44" x2="340" y1="248.0" y2="248.0"/><text x="36" y="252.0" text-anchor="end">0.08</text><line class="grid" x1="44" x2="340" y1="170.7" y2="170.7"/><text x="36" y="174.7" text-anchor="end">0.12</text><line class="grid" x1="44" x2="340" y1="93.3" y2="93.3"/><text x="36" y="97.3" text-anchor="end">0.16</text><line class="grid" x1="44" x2="340" y1="16.0" y2="16.0"/><text x="36" y="20.0" text-anchor="end">0.20</text><text x="66.0" y="268" text-anchor="middle">Horizontal</text><text x="66.0" y="283" text-anchor="middle" style="font-size:11px">0°</text><text x="153.3" y="268" text-anchor="middle">Shaking</text><text x="153.3" y="283" text-anchor="middle" style="font-size:11px">[0°, 15°]</text><text x="240.7" y="268" text-anchor="middle">Rolling</text><text x="240.7" y="283" text-anchor="middle" style="font-size:11px">[0°, 45°]</text><text x="328.0" y="268" text-anchor="middle">Tipping</text><text x="328.0" y="283" text-anchor="middle" style="font-size:11px">[0°, 90°]</text><text x="44" y="304" text-anchor="start" style="font-size:11px">Roll setting · AbsRel ↓, averaged across five benchmarks (Table 2)</text><line class="cross" x1="0" x2="0" y1="16" y2="248"/><polyline class="line" stroke="var(--s1,#2a78d6)" points="66.0,209.3 153.3,184.2 240.7,161.0 328.0,141.7"/><polyline class="line" stroke="var(--s2,#eb6834)" points="66.0,201.6 153.3,188.1 240.7,182.3 328.0,172.6"/><polyline class="line" stroke="var(--s3,#1baf7a)" points="66.0,209.3 153.3,193.9 240.7,190.0 328.0,186.1"/><polyline class="line" stroke="var(--s4,#eda100)" points="66.0,211.3 153.3,203.5 240.7,201.6 328.0,197.7"/><circle class="dot" cx="66.0" cy="209.3" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="153.3" cy="184.2" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="240.7" cy="161.0" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="328.0" cy="141.7" r="5" fill="var(--s1,#2a78d6)"/><text class="nm" x="340.0" y="145.7">Baseline <tspan class="v">0.135</tspan></text><circle class="dot" cx="66.0" cy="201.6" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="153.3" cy="188.1" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="240.7" cy="182.3" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="328.0" cy="172.6" r="5" fill="var(--s2,#eb6834)"/><text class="nm" x="340.0" y="176.6">Re-balanced Aug <tspan class="v">0.119</tspan></text><circle class="dot" cx="66.0" cy="209.3" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="153.3" cy="193.9" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="240.7" cy="190.0" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="328.0" cy="186.1" r="5" fill="var(--s3,#1baf7a)"/><text class="nm" x="340.0" y="194.6">Horizon Leveling <tspan class="v">0.112</tspan></text><circle class="dot" cx="66.0" cy="211.3" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="153.3" cy="203.5" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="240.7" cy="201.6" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="328.0" cy="197.7" r="5" fill="var(--s4,#eda100)"/><text class="nm" x="340.0" y="212.6">ID-Constraint <tspan class="v">0.106</tspan></text><rect class="hit" data-i="0" x="22.3" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="1" x="109.7" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="2" x="197.0" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="3" x="284.3" y="16" width="87.3" height="232" fill="transparent"/></svg>
+        <div class="tip"></div>
+      </figure>
+    </div>
+    <p class="prose">两张图均为论文 Table 2 中的 AbsRel（越低越好，五个基准数据集平均），纵轴刻度相同：已有模型的误差随滚转范围增大而上升，ID-Constraint 基本保持平稳。</p>
+
+    <div class="table-wrap"><table><caption><b>论文 Table 2。</b>已有 MDE 模型与本文方法在四种滚转设置下的结果，每种设置下为五个基准数据集的平均。AbsRel 为平均绝对相对误差，越低越好；δ<sub>1</sub> 为精度，越高越好。</caption><thead><tr><th rowspan="2">方法</th><th class="grp" colspan="2">Horizontal (0°)</th><th class="grp" colspan="2">Shaking [0°, 15°]</th><th class="grp" colspan="2">Rolling [0°, 45°]</th><th class="grp" colspan="2">Tipping [0°, 90°]</th></tr><tr><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead><tbody><tr><th>Marigold*</th><td class="n g">0.130</td><td class="n">0.886</td><td class="n g">0.146</td><td class="n">0.859</td><td class="n g">0.171</td><td class="n">0.814</td><td class="n g">0.200</td><td class="n">0.765</td></tr><tr><th>GenPercept*</th><td class="n g">0.130</td><td class="n">0.891</td><td class="n g">0.143</td><td class="n">0.869</td><td class="n g">0.164</td><td class="n">0.830</td><td class="n g">0.185</td><td class="n">0.794</td></tr><tr class="sep"><th>DAv2*</th><td class="n g"><b>0.096</b></td><td class="n"><b>0.922</b></td><td class="n g">0.109</td><td class="n">0.906</td><td class="n g">0.119</td><td class="n">0.895</td><td class="n g">0.127</td><td class="n">0.883</td></tr><tr><th>DistillAD*</th><td class="n g">0.099</td><td class="n">0.920</td><td class="n g">0.113</td><td class="n">0.900</td><td class="n g">0.124</td><td class="n">0.889</td><td class="n g">0.131</td><td class="n">0.878</td></tr><tr class="ours sep"><th>(ours) Baseline</th><td class="n g">0.100</td><td class="n">0.920</td><td class="n g">0.113</td><td class="n">0.901</td><td class="n g">0.125</td><td class="n">0.887</td><td class="n g">0.135</td><td class="n">0.873</td></tr><tr class="ours"><th>(ours) Re-balanced Aug</th><td class="n g">0.104</td><td class="n">0.918</td><td class="n g">0.111</td><td class="n">0.904</td><td class="n g">0.114</td><td class="n">0.901</td><td class="n g">0.119</td><td class="n">0.897</td></tr><tr class="ours"><th>(ours) Horizon Leveling</th><td class="n g">0.100</td><td class="n">0.920</td><td class="n g">0.108</td><td class="n">0.910</td><td class="n g">0.110</td><td class="n">0.907</td><td class="n g">0.112</td><td class="n">0.905</td></tr><tr class="ours"><th>(ours) ID-Constraint</th><td class="n g">0.099</td><td class="n">0.920</td><td class="n g"><b>0.103</b></td><td class="n"><b>0.916</b></td><td class="n g"><b>0.104</b></td><td class="n"><b>0.915</b></td><td class="n g"><b>0.106</b></td><td class="n"><b>0.913</b></td></tr></tbody></table></div>
+
+    <figure class="bars bench"><ul class="legend"><li><i class="s1"></i>DAv2*</li><li><i class="s2"></i>(ours) Baseline</li><li><i class="acc"></i>(ours) ID-Constraint</li></ul><div class="bar-group"><span class="bg">DIODE</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:78.8%" title="DAv2*"></i><span class="bv">0.268</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:82.1%" title="(ours) Baseline"></i><span class="bv">0.279</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:75.0%" title="(ours) ID-Constraint"></i><span class="bv">0.255</span></span></div></div></div><div class="bar-group"><span class="bg">ScanNet</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:22.9%" title="DAv2*"></i><span class="bv">0.078</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:25.0%" title="(ours) Baseline"></i><span class="bv">0.085</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:15.0%" title="(ours) ID-Constraint"></i><span class="bv">0.051</span></span></div></div></div><div class="bar-group"><span class="bg">ETH3D</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:22.1%" title="DAv2*"></i><span class="bv">0.075</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:24.1%" title="(ours) Baseline"></i><span class="bv">0.082</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:15.0%" title="(ours) ID-Constraint"></i><span class="bv">0.051</span></span></div></div></div><div class="bar-group"><span class="bg">KITTI</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:34.7%" title="DAv2*"></i><span class="bv">0.118</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:36.5%" title="(ours) Baseline"></i><span class="bv">0.124</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:25.3%" title="(ours) ID-Constraint"></i><span class="bv">0.086</span></span></div></div></div><div class="bar-group"><span class="bg">NYUv2</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:20.3%" title="DAv2*"></i><span class="bv">0.069</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:21.8%" title="(ours) Baseline"></i><span class="bv">0.074</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:16.2%" title="(ours) ID-Constraint"></i><span class="bv">0.055</span></span></div></div></div><figcaption>Tipping [0°, 90°] 设置下各数据集的 AbsRel（越低越好）：DAv2、复现基线与 ID-Constraint。条形从零开始、共用同一刻度。数据来源：论文 Table 3。</figcaption></figure>
+    <div class="table-wrap"><table><caption><b>论文 Table 3。</b>最难的 Tipping [0°, 90°] 设置下各数据集的结果。</caption><thead><tr><th rowspan="2">方法</th><th class="grp" colspan="2">DIODE</th><th class="grp" colspan="2">ScanNet</th><th class="grp" colspan="2">ETH3D</th><th class="grp" colspan="2">KITTI</th><th class="grp" colspan="2">NYUv2</th></tr><tr><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead><tbody><tr><th>Marigold*</th><td class="n g">0.337</td><td class="n">0.705</td><td class="n g">0.133</td><td class="n">0.832</td><td class="n g">0.129</td><td class="n">0.842</td><td class="n g">0.246</td><td class="n">0.613</td><td class="n g">0.125</td><td class="n">0.854</td></tr><tr><th>GenPercept*</th><td class="n g">0.337</td><td class="n">0.715</td><td class="n g">0.113</td><td class="n">0.871</td><td class="n g">0.114</td><td class="n">0.877</td><td class="n g">0.225</td><td class="n">0.633</td><td class="n g">0.103</td><td class="n">0.895</td></tr><tr class="sep"><th>DAv2*</th><td class="n g">0.268</td><td class="n">0.736</td><td class="n g">0.078</td><td class="n">0.938</td><td class="n g">0.075</td><td class="n">0.941</td><td class="n g">0.118</td><td class="n">0.873</td><td class="n g">0.069</td><td class="n">0.957</td></tr><tr><th>DistillAD*</th><td class="n g">0.271</td><td class="n">0.735</td><td class="n g">0.079</td><td class="n">0.939</td><td class="n g">0.080</td><td class="n">0.932</td><td class="n g">0.124</td><td class="n">0.863</td><td class="n g">0.074</td><td class="n">0.952</td></tr><tr class="ours sep"><th>(ours) Baseline</th><td class="n g">0.279</td><td class="n">0.732</td><td class="n g">0.085</td><td class="n">0.923</td><td class="n g">0.082</td><td class="n">0.929</td><td class="n g">0.124</td><td class="n">0.863</td><td class="n g">0.074</td><td class="n">0.950</td></tr><tr class="ours"><th>(ours) Re-balanced Aug</th><td class="n g">0.263</td><td class="n">0.748</td><td class="n g">0.058</td><td class="n">0.967</td><td class="n g">0.068</td><td class="n">0.957</td><td class="n g">0.115</td><td class="n">0.877</td><td class="n g">0.062</td><td class="n">0.967</td></tr><tr class="ours"><th>(ours) Horizon Leveling</th><td class="n g">0.262</td><td class="n">0.745</td><td class="n g">0.061</td><td class="n">0.958</td><td class="n g">0.057</td><td class="n">0.967</td><td class="n g">0.087</td><td class="n">0.927</td><td class="n g">0.061</td><td class="n">0.962</td></tr><tr class="ours"><th>(ours) ID-Constraint</th><td class="n g"><b>0.255</b></td><td class="n"><b>0.753</b></td><td class="n g"><b>0.051</b></td><td class="n"><b>0.971</b></td><td class="n g"><b>0.051</b></td><td class="n"><b>0.972</b></td><td class="n g"><b>0.086</b></td><td class="n"><b>0.931</b></td><td class="n g"><b>0.055</b></td><td class="n"><b>0.971</b></td></tr></tbody></table></div>
+
+    <figure class="paper-fig">
+      <img src="../assets/fig4-qualitative.jpg" width="2103" height="1195" loading="lazy" alt="论文图 4：同一张真实室内图像在 Horizontal、Shaking (15°)、Rolling (45°)、Tipping (90°) 四种设置下，GenPercept、Marigold、PromptDA、DAv2、DistillAD 与 ID-Constraint 的深度预测及误差图；随着滚转增大，已有模型无法恢复桌腿附近的深度。">
+      <figcaption>论文图 4。四种滚转设置下，已有 MDE 模型与 ID-Constraint 在一张真实室内图像上的定性比较。PromptDA 额外输入了低分辨率的真值深度图。左下角灰度图为相对各自水平预测的绝对误差图。</figcaption>
+    </figure>
+
+    <figure class="bars"><div class="bar-row"><span class="bl">Baseline</span><span class="bt"><i style="width:90.0%"></i></span><span class="bv">0.135</span><span class="bd">δ<sub>1</sub> 0.873</span></div><div class="bar-row"><span class="bl">+ Re-balanced Aug</span><span class="bt"><i style="width:79.3%"></i></span><span class="bv">0.119</span><span class="bd">δ<sub>1</sub> 0.897</span></div><div class="bar-row"><span class="bl">+ Re-balanced Aug + region &amp; pixel ID losses</span><span class="bt"><i style="width:76.0%"></i></span><span class="bv">0.114</span><span class="bd">δ<sub>1</sub> 0.903</span></div><div class="bar-row"><span class="bl">+ Horizon Leveling</span><span class="bt"><i style="width:74.7%"></i></span><span class="bv">0.112</span><span class="bd">δ<sub>1</sub> 0.905</span></div><div class="bar-row"><span class="bl">+ Re-balanced Aug + Horizon Leveling</span><span class="bt"><i style="width:73.3%"></i></span><span class="bv">0.110</span><span class="bd">δ<sub>1</sub> 0.909</span></div><div class="bar-row"><span class="bl">+ Aug + Leveling + region losses</span><span class="bt"><i style="width:72.0%"></i></span><span class="bv">0.108</span><span class="bd">δ<sub>1</sub> 0.910</span></div><div class="bar-row"><span class="bl">+ Aug + Leveling + pixel losses</span><span class="bt"><i style="width:71.3%"></i></span><span class="bv">0.107</span><span class="bd">δ<sub>1</sub> 0.912</span></div><div class="bar-row hl"><span class="bl">+ Aug + Leveling + region &amp; pixel losses (full ID-Constraint)</span><span class="bt"><i style="width:70.7%"></i></span><span class="bv">0.106</span><span class="bd">δ<sub>1</sub> 0.913</span></div><figcaption>Tipping [0°, 90°] 设置下消融实验各配置的 AbsRel（越低越好，五个基准数据集平均），右侧为 δ<sub>1</sub>。条形从零开始。数据来源：论文 Table 4。</figcaption></figure>
+    <div class="table-wrap"><table>
+<caption><b>论文 Table 4。</b>在最难的 Tipping [0°, 90°] 设置下的消融实验，结果为五个基准数据集的平均。ID-Constraint 需要再平衡增强来学习不变特征，因此默认带再平衡增强；水平校正是无需训练的调整，可叠加在任何设置之上。</caption>
+<thead><tr><th class="c">Re-balanced Aug</th><th class="c">Horizon Leveling</th><th class="c">Region Losses</th><th class="c">Pixel Losses</th><th class="c">ID-Constraint</th><th class="n">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead><tbody>
+<tr><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="n">0.135</td><td class="n">0.873</td></tr>
+          <tr class="sep"><td class="c">✓</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="n">0.119</td><td class="n">0.897</td></tr>
+          <tr><td class="c">✓</td><td class="c"></td><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="n">0.114</td><td class="n">0.903</td></tr>
+          <tr class="sep"><td class="c"></td><td class="c">✓</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="n">0.112</td><td class="n">0.905</td></tr>
+          <tr><td class="c">✓</td><td class="c">✓</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="n">0.110</td><td class="n">0.909</td></tr>
+          <tr class="sep"><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="c"></td><td class="c">✓</td><td class="n">0.108</td><td class="n">0.910</td></tr>
+          <tr><td class="c">✓</td><td class="c">✓</td><td class="c"></td><td class="c">✓</td><td class="c">✓</td><td class="n">0.107</td><td class="n">0.912</td></tr>
+          <tr class="ours"><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="n"><b>0.106</b></td><td class="n"><b>0.913</b></td></tr></tbody></table></div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="lbl">ID-Constraint 增加的推理参数量：辅助头只在训练时使用（附录 E）</div></div>
+      <div class="stat"><div class="num">+15.4 ms</div><div class="lbl">水平校正带来的延迟，这是唯一的额外推理开销：约 21M 参数的 ViT-S 滚转角预测器，单张 A100、batch size 为 1（附录 E）</div></div>
+      <div class="stat"><div class="num">25.90°</div><div class="lbl">Table 1 中最好的滚转角预测模型的平均误差，这也是仅靠水平校正不够的原因</div></div>
+    </div>
+    <p class="prose">Table 2、Table 3 中的 ID-Constraint 一行与 Table 4 消融实验的完整配置一致：训练时使用再平衡增强以及区域级和像素级 ID 损失，推理时使用水平校正。完整的 Table 1、Table 5 至 Table 7 见<a href="../#results" hreflang="en">英文页面</a>。</p>
+  </div>
+</section>
+
+<section id="qa">
+  <div class="wrap">
+    <p class="eyebrow">问答</p>
+    <h2>常见问题</h2>
+
+    <details open>
+      <summary>单目深度估计中的水平先验（Horizontal Prior）是什么？</summary>
+      <p>水平先验指自然采集的真实图像绝大多数以近似水平的朝向拍摄，导致绝对滚转角呈长尾分布；因此滚转角 θ 大于 0° 的图像的深度估计误差显著大于对应的水平图像。论文将其视为单目深度估计中一种新的长尾偏差来源，并给出三方面证据：两万张 SA-1B 图像的滚转角分布与平均深度图、多个 MDE 模型随滚转增大而退化、以及细粒度滚转角分析中模型表现与滚转角分布的相关性。</p>
+    </details>
+    <details>
+      <summary>相机滚转时，Depth Anything V2 等深度模型会退化多少？</summary>
+      <p>在五个基准数据集上平均，Depth Anything V2 从 Horizontal 到 Tipping [0°, 90°] 设置，AbsRel 从 0.096 升至 0.127（变差 32%），δ1 从 0.922 降至 0.883（下降 3.9 个点）。对论文图 1(a) 中滚转 45° 的单张图像，AbsRel 变差 45.7%（0.138 到 0.201），δ1 下降 8.7 个点（0.869 到 0.782）。Marigold 的 AbsRel 从 0.130 升至 0.200，GenPercept 从 0.130 升至 0.185，Distill Any Depth 从 0.099 升至 0.131（Table 2 与附录 E）。</p>
+    </details>
+    <details>
+      <summary>为什么只做旋转增强或只做水平校正还不够？</summary>
+      <p>再平衡增强把 Tipping 设置的 AbsRel 从 0.135 降到 0.119，但在水平图像上略差于基线（0.104 对 0.100），论文认为这是因为 DINOv2 预训练时没有这类增强，会扩大预训练与微调数据之间的域差异。水平校正依赖滚转角估计，而仅凭单张图像估计滚转角并不准确：论文中最好的预测模型平均误差为 25.90°（Table 1），改用 PerspectiveFields 后为 18.7°（附录 E）。仅用水平校正在 Tipping 设置下 AbsRel 为 0.112，ID-Constraint 为 0.106（Table 2）。</p>
+    </details>
+    <details>
+      <summary>ID-Constraint 会让推理变慢或模型变大吗？</summary>
+      <p>不会。ID-Constraint 不增加任何推理参数，因为辅助的 ID Heads 只在训练阶段使用，训练后即被丢弃。论文报告的配置中唯一的额外推理开销来自水平校正：一个约 21M 参数的 ViT-S 滚转角预测器，在单张 A100、batch size 为 1 时增加 15.4 ms 延迟（附录 E）。</p>
+    </details>
+    <details>
+      <summary>ID-Constraint 会降低普通水平图像上的精度吗？</summary>
+      <p>在 Horizontal 设置下，ID-Constraint 的 AbsRel 为 0.099、δ1 为 0.920，相同条件下训练的复现基线为 0.100 和 0.920（Table 2）。Depth Anything V2 在该设置下略好（0.096 和 0.922），论文将其归因于复现基线本身较弱，因为 DAv2 的训练代码并未公开。</p>
+    </details>
+    <details>
+      <summary>模型权重和训练代码开源了吗？</summary>
+      <p>没有。由于本工作所在公司的保密规定，且维护该仓库的作者已从该公司离职，所有训练好的模型权重以及大部分代码（包括全部训练代码）都无法公开。公开仓库包含五个数据集、四种滚转设置的评测代码、推理所需的模型结构定义、paired bootstrap 置信区间脚本以及 SA-1B 数据列表脚本；用公开的 Depth Anything V2 和 Distill Any Depth 权重即可运行对应评测。</p>
+    </details>
+  </div>
+</section>
+
+<section id="code">
+  <div class="wrap">
+    <p class="eyebrow">代码与开源说明</p>
+    <h2>仓库里有什么、没有什么</h2>
+    <p class="prose">这项工作的动机来自一个真实的商业应用（手机拍摄的室内场景重建，论文图 2），公司的保密规定适用于相关代码和模型。维护该仓库的作者已从该公司离职，无法再访问未公开的部分。</p>
+    <div class="two">
+      <div class="box yes">
+        <h3>已公开</h3>
+        <ul>
+          <li><code>test.py</code>：在 DIODE、ScanNet、ETH3D、KITTI、NYUv2 上按四种滚转设置评测 DAv2 结构的权重；可直接用公开的 Depth Anything V2、Distill Any Depth 权重运行。</li>
+          <li><code>test_hl.py</code>：带水平校正的同一评测流程。</li>
+          <li><code>datasets/</code>：带旋转的评测 dataloader、样本列表、SA-1B 下载与列表脚本。</li>
+          <li><code>models/</code>：深度模型、滚转角预测模型、区域级 ID heads 的推理结构定义。</li>
+          <li><code>paired_bootstrap.py</code>：paired stratified bootstrap 置信区间。</li>
+          <li><code>_eval_others/</code>：移植到 GenPercept、Marigold 中的滚转评测代码，以及 PromptDA、MoGe 的可视化脚本。</li>
+        </ul>
+      </div>
+      <div class="box no">
+        <h3>未公开</h3>
+        <ul>
+          <li>全部训练好的权重：复现基线、再平衡增强模型、ID-Constraint 模型、滚转角预测模型。</li>
+          <li>全部训练代码：蒸馏训练、ID 损失、local peak 与 local slope 目标的生成、DepthCues 训练 dataloader、滚转角预测模型的两阶段训练。</li>
+        </ul>
+        <p><code>scripts/</code> 中评测这些权重的脚本作为评测流程的记录予以保留。</p>
+      </div>
+    </div>
+    <p class="prose">完整的使用说明、论文与代码的对应关系以及全部结果表格见 <a href="https://github.com/KaihuaTang/Horizontal-Prior#readme">GitHub README</a>。</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>论文致谢：本工作得到同济大学中央高校基本科研业务费专项资金资助（Grant No. 22120260376）。原文：This work was supported by the Fundamental Research Funds for the Central Universities at Tongji University under Grant No. 22120260376.</p>
+    <p>本页所有数字和图片均来自论文（arXiv:2608.00678v1）。仓库代码以 Apache License 2.0 发布；<code>_eval_others/</code> 下的第三方代码保留其原有许可证。</p>
+    <p><a href="../llms.txt">llms.txt</a> · <a href="https://github.com/KaihuaTang/Horizontal-Prior">GitHub</a> · <a href="https://arxiv.org/abs/2608.00678">arXiv</a> · <a href="../" hreflang="en" lang="en">English</a></p>
+  </div>
+</footer>
+
+<script src="../main.js" defer></script>
+</body>
+</html>

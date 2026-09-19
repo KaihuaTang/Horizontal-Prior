@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breaking the Horizontal Prior: Roll-Robust Monocular Depth Estimation with ID-Constraint | arXiv 2026</title>
+<meta name="description" content="The Horizontal Prior is the long-tailed bias of real-world images toward horizontal camera orientation, which makes monocular depth estimation models degrade under camera roll. ID-Constraint fine-tunes the depth backbone with six rotation-invariant auxiliary tasks and adds no inference parameters.">
+<meta name="keywords" content="monocular depth estimation, horizontal prior, camera roll robustness, long-tailed distribution bias, Invariant Depth Constraint, ID-Constraint, horizon leveling, re-balanced augmentation, Depth Anything V2, DINOv2, DepthCues, rotation-invariant auxiliary tasks">
+<meta name="author" content="Kaihua Tang, Ziqing Xia, Xiaoxu Zheng, Xiaoxue Zhang, Michael Bi Mi, Zhan Xu, Dave Zhenyu Chen">
+<link rel="canonical" href="https://kaihuatang.github.io/Horizontal-Prior/">
+<link rel="alternate" hreflang="en" href="https://kaihuatang.github.io/Horizontal-Prior/">
+<link rel="alternate" hreflang="zh-CN" href="https://kaihuatang.github.io/Horizontal-Prior/zh/">
+<link rel="alternate" hreflang="x-default" href="https://kaihuatang.github.io/Horizontal-Prior/">
+<link rel="alternate" type="text/markdown" title="LLM-readable summary" href="llms.txt">
+
+<meta name="citation_title" content="Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation">
+<meta name="citation_author" content="Tang, Kaihua">
+<meta name="citation_author" content="Xia, Ziqing">
+<meta name="citation_author" content="Zheng, Xiaoxu">
+<meta name="citation_author" content="Zhang, Xiaoxue">
+<meta name="citation_author" content="Mi, Michael Bi">
+<meta name="citation_author" content="Xu, Zhan">
+<meta name="citation_author" content="Chen, Dave Zhenyu">
+<meta name="citation_publication_date" content="2026/08/01">
+<meta name="citation_arxiv_id" content="2608.00678">
+<meta name="citation_pdf_url" content="https://arxiv.org/pdf/2608.00678">
+<meta name="citation_abstract_html_url" content="https://arxiv.org/abs/2608.00678">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Breaking the Horizontal Prior: Roll-Robust Monocular Depth Estimation">
+<meta property="og:description" content="Depth foundation models degrade when the camera rolls. The paper traces this to a long-tailed orientation bias, the Horizontal Prior, and proposes the Invariant Depth Constraint (ID-Constraint).">
+<meta property="og:url" content="https://kaihuatang.github.io/Horizontal-Prior/">
+<meta property="og:image" content="https://kaihuatang.github.io/Horizontal-Prior/assets/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "ScholarlyArticle",
+   "@id": "https://arxiv.org/abs/2608.00678",
+   "headline": "Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation",
+   "name": "Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation",
+   "author": [
+    {
+     "@type": "Person",
+     "name": "Kaihua Tang",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Tongji University"
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Ziqing Xia",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Tongji University"
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Xiaoxu Zheng",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Xiaoxue Zhang",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Michael Bi Mi",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Zhan Xu",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    },
+    {
+     "@type": "Person",
+     "name": "Dave Zhenyu Chen",
+     "affiliation": {
+      "@type": "Organization",
+      "name": "Huawei Technologies Ltd."
+     }
+    }
+   ],
+   "datePublished": "2026-08-01",
+   "dateModified": "2026-08-01",
+   "inLanguage": "en",
+   "url": "https://arxiv.org/abs/2608.00678",
+   "sameAs": [
+    "https://arxiv.org/pdf/2608.00678",
+    "https://kaihuatang.github.io/Horizontal-Prior/"
+   ],
+   "identifier": {
+    "@type": "PropertyValue",
+    "propertyID": "arXiv",
+    "value": "2608.00678"
+   },
+   "keywords": "monocular depth estimation, horizontal prior, camera roll robustness, long-tailed distribution bias, Invariant Depth Constraint, ID-Constraint, horizon leveling, Depth Anything V2",
+   "abstract": "Despite recent advances in Monocular Depth Estimation, state-of-the-art depth foundation models remain vulnerable to robustness issues. Particularly, even slight camera rolls can result in substantial degradation in depth estimations. We attribute this problem to a previously overlooked phenomenon, termed the Horizontal Prior, which is a manifestation of long-tailed distribution bias: most training images are captured in approximately horizontal orientations due to human visual preferences and photographic habits. While intuitive remedies such as re-balanced data augmentation and horizon leveling provide partial improvements, they fail to fully address the issue. In this paper, we introduce Invariant Depth Constraint (ID-Constraint), a training-time supervision strategy that improves roll robustness by fine-tuning and jointly regularizing the depth backbone with a series of geometric and spatial reasoning tasks. These auxiliary objectives encourage the backbone to learn rotation-stable, depth-relevant representations, while the auxiliary prediction heads are discarded after training, leaving the original inference architecture unchanged. Extensive experiments on five benchmark datasets across four roll settings demonstrate the effectiveness of the proposed method."
+  },
+  {
+   "@type": "SoftwareSourceCode",
+   "name": "Horizontal-Prior",
+   "description": "Evaluation code for roll-robust monocular depth estimation: DIODE, ScanNet, ETH3D, KITTI and NYUv2 under four roll settings (Horizontal, Shaking, Rolling, Tipping) for Depth Anything V2 architecture checkpoints, with optional horizon leveling, in PyTorch. Trained checkpoints and training code are not released.",
+   "codeRepository": "https://github.com/KaihuaTang/Horizontal-Prior",
+   "programmingLanguage": "Python",
+   "license": "https://www.apache.org/licenses/LICENSE-2.0",
+   "citation": {
+    "@id": "https://arxiv.org/abs/2608.00678"
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "inLanguage": "en",
+   "url": "https://kaihuatang.github.io/Horizontal-Prior/",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "Table 1 (roll-angle prediction models) and Tables 5 to 7 (per-benchmark results for the Horizontal, Shaking and Rolling settings, Appendix D)\n    \n      \n        Table 1 of the paper. Roll-angle prediction models under different configurations: training stage, output activation and training loss. Angle error is the mean error in degrees on the five benchmark datasets under the Tipping scenario.\n        StageActivationL1 lossCOS lossAngle error (°)\n        \n          Stage-1tanh✓45.69\n          Stage-1tanh✓47.94\n          Stage-2none✓✓28.53\n          Stage-2none✓40.41\n          Stage-2none✓46.32\n          Stage-2tanh✓✓29.49\n          Stage-2tanh✓31.99\n          Stage-2tanh✓25.90\n        \n      \n    \n    Table 5 of the paper. Results per benchmark under the Horizontal (0°) setting, the conventional test setting without manual rotation.MethodDIODEScanNetETH3DKITTINYUv2AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑Marigold*0.2790.7760.0720.9460.0680.9560.1370.8210.0610.958GenPercept*0.2970.7640.0620.9590.0730.9510.1300.8410.0580.963DAv2*0.2450.7620.0420.9790.0430.9830.0770.9440.0440.979DistillAD*0.2460.7580.0460.9780.0500.9770.0740.9430.0470.977(ours) Baseline0.2520.7560.0460.9770.0450.9810.0770.9430.0470.977(ours) Re-balanced Aug0.2510.7580.0490.9770.0580.9730.0830.9370.0510.977(ours) Horizon Leveling0.2520.7560.0460.9770.0450.9810.0770.9430.0470.977(ours) ID-Constraint0.2510.7570.0450.9770.0430.9810.0770.9440.0470.977\n    Table 6 of the paper. Results per benchmark under the Shaking [0°, 15°] setting.MethodDIODEScanNetETH3DKITTINYUv2AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑Marigold*0.2940.7580.0890.9170.0800.9390.1610.7580.0690.950GenPercept*0.3060.7520.0810.9290.0800.9440.1490.7930.0640.956DAv2*0.2500.7550.0490.9720.0510.9760.1150.8810.0490.977DistillAD*0.2520.7500.0530.9700.0590.9690.1220.8710.0530.974(ours) Baseline0.2560.7510.0530.9680.0550.9710.1180.8740.0510.975(ours) Re-balanced Aug0.2530.7570.0470.9770.0560.9730.1190.8660.0520.976(ours) Horizon Leveling0.2590.7480.0590.9590.0560.9690.0800.9390.0530.970(ours) ID-Constraint0.2540.7540.0490.9720.0490.9750.0800.9410.0490.974\n    Table 7 of the paper. Results per benchmark under the Rolling [0°, 45°] setting.MethodDIODEScanNetETH3DKITTINYUv2AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑AbsRel ↓δ1 ↑Marigold*0.3190.7290.1100.8780.1080.8890.1980.6820.0910.918GenPercept*0.3260.7250.0940.9080.0950.9150.1900.6970.0810.933DAv2*0.2570.7480.0640.9560.0650.9580.1180.8770.0600.969DistillAD*0.2610.7440.0680.9530.0730.9510.1250.8660.0660.963(ours) Baseline0.2670.7420.0710.9450.0730.9480.1210.8690.0640.964(ours) Re-balanced Aug0.2580.7530.0510.9730.0620.9640.1150.8750.0570.972(ours) Horizon Leveling0.2620.7450.0600.9570.0560.9680.0840.9340.0560.966(ours) ID-Constraint0.2550.7540.0510.9710.0500.9730.0840.9350.0510.973\n    \n  \n\n\n\n  \n    Q&A\n    Questions and answers\n\n    \n      What is the Horizontal Prior in monocular depth estimation?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The Horizontal Prior is the phenomenon whereby naturally collected real-world images tend to be captured in approximately horizontal orientations, resulting in a long-tailed distribution of absolute roll angles. As a consequence, the depth estimation error for an image with roll angle θ > 0° is significantly larger than for the corresponding horizontal image. The paper presents it as a new source of long-tailed bias in monocular depth estimation and supports it with three pieces of evidence: natural photographic data and the averaged depth map of 20,000 SA-1B images, the degradation of multiple MDE models when controlled roll increases, and a fine-grained roll analysis in which model behavior correlates with the roll distribution."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How much do depth models such as Depth Anything V2 degrade when the camera rolls?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Averaged over five benchmarks, the AbsRel of Depth Anything V2 rises from 0.096 to 0.127 (32% worse) and δ1 falls from 0.922 to 0.883 (3.9 points) between the Horizontal and Tipping [0°, 90°] settings. For the single image of Figure 1(a) rolled by 45°, AbsRel degrades by 45.7% (0.138 to 0.201) and δ1 by 8.7 points (0.869 to 0.782). Marigold goes from 0.130 to 0.200 AbsRel, GenPercept from 0.130 to 0.185 and Distill Any Depth from 0.099 to 0.131 (Table 2 and Appendix E)."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Why is rotation augmentation alone not enough?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Re-balanced augmentation, which rotates training images by an angle uniformly sampled from [−90°, 90°], improves the Tipping setting from 0.135 to 0.119 AbsRel, but it is slightly worse than the baseline on upright images (0.104 vs. 0.100 AbsRel in the Horizontal setting, Table 2). The paper explains that it can disrupt feature learning: DINOv2 was pretrained without such augmentation, so it may enlarge the domain gap between pretraining and fine-tuning data."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Why not simply level the horizon before predicting depth?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Horizon leveling needs the roll angle. Commercial solutions typically rely on hardware sensors such as an IMU, which are unavailable for image datasets, and estimating roll from a single image is inaccurate: the best roll-angle predictor in the paper has a mean error of 25.90° (Table 1), and adapting PerspectiveFields improves it to 18.7° on the same test data (Appendix E). Since even mild rotations of [0°, 15°] already cause substantial degradation, horizon leveling alone reaches 0.112 AbsRel in the Tipping setting, compared with 0.106 for ID-Constraint (Table 2)."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Does ID-Constraint make inference slower or the model larger?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. ID-Constraint adds zero inference parameters, because the auxiliary ID Heads are used only during training and are discarded afterwards. The only additional inference cost in the reported configuration is horizon leveling, which uses a ViT-S roll-angle predictor of about 21M parameters and adds 15.4 ms latency on one A100 with batch size 1 (Appendix E)."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Why local peak and local slope instead of surface normals?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The paper chose local peak and local slope because both are dense, local, compatible with affine-invariant depth, and rotation-invariant. Surface normals also have potential but are not a direct replacement: a normal vector is equivariant, not invariant, under image roll, because its components rotate with the image coordinate system (Appendix E)."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Does ID-Constraint hurt accuracy on ordinary upright images?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "In the Horizontal setting ID-Constraint obtains 0.099 AbsRel and 0.920 δ1, compared with 0.100 and 0.920 for the re-implemented baseline trained under the same conditions (Table 2). Depth Anything V2 is slightly better in this setting (0.096 and 0.922); the paper attributes this to the weaker performance of the re-implemented baseline, since the training code of DAv2 is not public."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Are the improvements statistically reliable?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The paper reports paired bootstrap confidence intervals with 1K per-image resamples in the Tipping setting. ID-Constraint versus re-balanced augmentation plus horizon leveling gives Δδ1 = +0.004 with a 95% CI of [0.0026, 0.0052] and ΔAbsRel = −0.004 with a 95% CI of [−0.0047, −0.0031] (Appendix E). The script used for this analysis, paired_bootstrap.py, is in the repository."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Why does performance rebound near 90° of roll?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "In the fine-grained analysis (Figure 5), performance degrades gradually within [0°, 60°] and improves unexpectedly near 90°. The paper explains that a small portion of photos taken by cameras or smartphones fail to undergo horizontal correction, so the training distribution itself has a local peak near 90° (Figure 7). Methods that incorporate horizon leveling show an almost monotonic trend instead (Appendix C)."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is the degradation just an artifact of the resolution change caused by rotation?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Rotating an image toward 45° increases its effective resolution, which by itself makes prediction harder for a ViT with a fixed input size. The paper therefore adds a Base (Crop) setting in which each rotated image is cropped to match the original resolution. Performance improves slightly with cropping, but the overall downward trend remains consistent with the baseline (Figure 5 and Appendix D)."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Are newer or stronger models such as Depth Anything 3 or PromptDA also affected?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Qualitatively, yes. Using the online demo of Depth Anything 3, the paper shows blurred boundaries around table legs and human shapes under the Rolling and Tipping settings (Figure 9). PromptDA, a depth super-resolution model that takes a low-resolution ground-truth depth map as input, still produces noticeably blurred edges under Tipping (Figure 4). The paper reports no quantitative results for these two models."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How does this work relate to long-tailed classification?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The paper maps the two intuitive remedies onto the two families of long-tailed classification methods: re-balanced augmentation corresponds to re-balanced training, and horizon leveling corresponds to training-free adjustment at inference. ID-Constraint instead targets feature learning, encouraging the backbone to rely on rotation-invariant depth cues."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Are the trained checkpoints and the training code available?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Because of the confidentiality policy of the company where the work was carried out, and because the author who maintains the repository has left that company, all trained checkpoints and most of the code, including all training code, cannot be released. The public repository contains the evaluation code for the four roll settings on five datasets, the inference-time model definitions, the paired bootstrap script and the SA-1B data-list scripts. The evaluation of public Depth Anything V2 and Distill Any Depth checkpoints can be run with it."
+     }
+    }
+   ]
+  }
+ ]
+}
+</script>
+</head>
+<body>
+
+<nav class="nav" aria-label="Sections">
+  <div class="wrap">
+    <a class="brand" href="#top">Horizontal <i>Prior</i></a>
+    <ul>
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#qa">Q&amp;A</a></li>
+      <li><a href="#code">Code</a></li>
+      <li><a href="#cite">Cite</a></li>
+      <li><a class="lang" href="zh/" hreflang="zh-CN" lang="zh-CN">中文</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <p class="tag"><b>arXiv:2608.00678</b> · cs.CV · 1 Aug 2026 · preprint, under review</p>
+    <h1>Breaking the <em>Horizontal Prior</em>: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation</h1>
+    <div class="horizon" aria-hidden="true"></div>
+    <p class="authors">
+      <span>Kaihua Tang<sup>1</sup>,</span> <span>Ziqing Xia<sup>1</sup> (corresponding author),</span> <span>Xiaoxu Zheng<sup>2</sup>,</span> <span>Xiaoxue Zhang<sup>2</sup>,</span> <span>Michael Bi Mi<sup>2</sup>,</span> <span>Zhan Xu<sup>2</sup>,</span> <span>Dave Zhenyu Chen<sup>2</sup></span>
+    </p>
+    <p class="affil"><sup>1</sup>Tongji University &nbsp; <sup>2</sup>Huawei Technologies Ltd.</p>
+    <div class="btns">
+      <a class="btn primary" href="https://arxiv.org/abs/2608.00678">Paper · arXiv</a>
+      <a class="btn" href="https://arxiv.org/pdf/2608.00678">PDF</a>
+      <a class="btn" href="https://github.com/KaihuaTang/Horizontal-Prior">Code · GitHub</a>
+      <a class="btn" href="#cite">BibTeX</a>
+    </div>
+    <p class="notice"><strong>Partial code release.</strong> Because of the confidentiality policy of the company where this work was carried out, the trained checkpoints and most of the code (including all training code) cannot be released. The repository contains the roll-robustness evaluation code. <a href="#code">See exactly what is available</a>.</p>
+  </div>
+</header>
+
+<main>
+
+<section id="teaser" aria-label="Qualitative comparison" class="flush">
+  <div class="wrap">
+    <figure class="paper-fig teaser">
+      <img src="assets/fig4-qualitative.jpg" width="2103" height="1195" alt="Figure 4 of the paper: a real-world indoor image of a table under the Horizontal, Shaking (15°), Rolling (45°) and Tipping (90°) settings, with depth predictions from GenPercept, Marigold, PromptDA, DAv2, DistillAD and ID-Constraint and small grayscale error maps. The table legs blur or vanish for existing models as roll increases.">
+      <figcaption>Figure 4 of the paper. Qualitative comparisons of existing state-of-the-art MDE models and the proposed ID-Constraint on a real-world indoor image under four roll settings. PromptDA takes an additional low-resolution ground-truth depth map as input. The bottom-left grayscale images visualize the absolute error maps corresponding to their respective horizontal depth predictions. GenPercept, Marigold and PromptDA produce outputs in the depth space, while the remaining output in the disparity space.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="intro" aria-label="Definitions">
+  <div class="wrap defs">
+    <div class="def">
+      <h2>What is the Horizontal Prior?</h2>
+      <p>The <strong>Horizontal Prior</strong> is the phenomenon whereby naturally collected real-world images tend to be captured in approximately horizontal orientations, resulting in a long-tailed distribution of absolute roll angles. Monocular depth estimation (MDE) models trained on such data make significantly larger errors on a rolled image than on the corresponding horizontal image. For Depth Anything V2, AbsRel rises from 0.096 to 0.127 (32% worse) between upright test images and images rolled by up to 90° (Table 2 and Appendix E of the paper).</p>
+    </div>
+    <div class="def">
+      <h2>What is ID-Constraint?</h2>
+      <p>The <strong>Invariant Depth Constraint (ID-Constraint)</strong> is a training-time supervision strategy that fine-tunes the depth backbone jointly with six rotation-invariant auxiliary tasks: four region-level tasks (light and shadow, occlusion, size, texture gradient) and two pixel-level tasks (local peak, local slope). The auxiliary heads are discarded after training, so the inference architecture is unchanged. It achieves the best results in the three rolled settings of the benchmark, for example AbsRel 0.106 and δ<sub>1</sub> 0.913 under rolls up to 90° (Table 2).</p>
+    </div>
+  </div>
+</section>
+
+<section id="cite">
+  <div class="wrap">
+    <p class="eyebrow">Citation</p>
+    <h2>Cite this work</h2>
+    <div class="cite prose">
+      <button class="copy" type="button" data-copy="bibtex">Copy</button>
+<pre id="bibtex"><code>@misc{tang2026breakinghorizontalpriorlongtailed,
+      title={Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation},
+      author={Kaihua Tang and Ziqing Xia and Xiaoxu Zheng and Xiaoxue Zhang and Michael Bi Mi and Zhan Xu and Dave Zhenyu Chen},
+      year={2026},
+      eprint={2608.00678},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2608.00678},
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="abstract">
+  <div class="wrap">
+    <p class="eyebrow">Abstract</p>
+    <h2>Abstract</h2>
+    <p class="prose">Despite recent advances in Monocular Depth Estimation, state-of-the-art depth foundation models remain vulnerable to robustness issues. Particularly, even slight camera rolls can result in substantial degradation in depth estimations. We attribute this problem to a previously overlooked phenomenon, termed the Horizontal Prior, which is a manifestation of long-tailed distribution bias: most training images are captured in approximately horizontal orientations due to human visual preferences and photographic habits. While intuitive remedies such as re-balanced data augmentation and horizon leveling provide partial improvements, they fail to fully address the issue. In this paper, we introduce Invariant Depth Constraint (ID-Constraint), a training-time supervision strategy that improves roll robustness by fine-tuning and jointly regularizing the depth backbone with a series of geometric and spatial reasoning tasks. These auxiliary objectives encourage the backbone to learn rotation-stable, depth-relevant representations, while the auxiliary prediction heads are discarded after training, leaving the original inference architecture unchanged. Extensive experiments on five benchmark datasets across four roll settings demonstrate the effectiveness of the proposed method.</p>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="wrap">
+    <p class="eyebrow">Problem</p>
+    <h2>Most photos are level. Depth models have learned to expect it.</h2>
+    <div class="prose">
+      <p>The paper randomly samples 20,000 real-world images from the SA-1B dataset and estimates their depth maps and absolute roll angles. The average depth map has a clear horizontal structure, and the absolute roll angle follows a long-tailed distribution. According to the paper, this bias arises from professional photography conventions and inherent human perceptual preferences. In practice, handheld camera shake, intentional motion and cinematic transitions produce non-horizontal inputs, which are underrepresented in training data.</p>
+      <p>The paper defines the roll robustness of an MDE model <i>f</i> as <i>f</i>(<i>T</i><sub>θ</sub>(<i>I</i>)) ≈ <i>T</i><sub>θ</sub>(<i>f</i>(<i>I</i>)) under an in-plane transform <i>T</i><sub>θ</sub> with θ &gt; 0°, and measures degradation with depth metrics (Appendix E).</p>
+    </div>
+    <figure class="paper-fig narrow">
+      <img src="assets/fig1-horizontal-prior.jpg" width="968" height="1064" loading="lazy" alt="Figure 1 of the paper: (a) a depth prediction that degrades when the same indoor scene is rolled, (b) random real-world images with approximately horizontal inferred horizons, (c) the average depth map of 20,000 random real-world images, (d) a long-tailed histogram of absolute roll angle over 20,000 random images.">
+      <figcaption>Figure 1 of the paper. Investigating the Horizontal Prior: (a) images with non-horizontal orientations exhibit substantial degradation in depth predictions; (b) randomly sampled images demonstrate that the visual data are mostly horizontal; (c) the average depth map and (d) the long-tailed distribution of absolute roll angle of 20K random real-world images.</figcaption>
+    </figure>
+
+    <div class="figrow">
+      <figure class="paper-fig">
+        <img src="assets/fig2-reconstruction.jpg" width="989" height="540" loading="lazy" alt="Figure 2 of the paper: casually captured mobile frames are fed to an MDE model and then to AGS-Mesh scene reconstruction; reconstructions using DAv2 depth show blurred chair legs and table edges, reconstructions using ID-Constraint depth are cleaner.">
+        <figcaption>Figure 2 of the paper. 3D reconstruction flaws caused by the horizontal prior in real-world applications: AGS-Mesh reconstruction using DAv2 depth vs. ID-Constraint depth.</figcaption>
+      </figure>
+      <figure class="paper-fig">
+        <img src="assets/fig7-roll-distribution.png" width="2083" height="863" loading="lazy" alt="Figure 7 of the paper: two histograms of absolute roll angle over 20,000 SA-1B samples. The original distribution has a small second peak near 90 degrees; after a one-time 90 degree rotation of samples whose detected roll exceeds 45 degrees, the distribution is a clean long tail.">
+        <figcaption>Figure 7 of the paper. Distribution of absolute roll angles across 20,000 SA-1B samples: (a) the original distribution; (b) the pre-aligned distribution after applying a one-time 90° rotation to samples whose detected roll angle exceeds 45°.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Contributions stated in the paper</h3>
+    <ol class="prose">
+      <li>The first systematic investigation of the Horizontal Prior, demonstrating that it arises from a long-tailed distributional bias in MDE.</li>
+      <li>ID-Constraint, which mitigates the Horizontal Prior through roll-robust supervision during training.</li>
+      <li>A new benchmark for distribution-aware depth estimation, comprising 5 datasets evaluated under 4 distinct roll settings.</li>
+      <li>Extensive experiments demonstrating that the approach outperforms previous state-of-the-art MDE methods in terms of rolling robustness.</li>
+    </ol>
+
+    <h3>The four roll settings of the benchmark</h3>
+    <p class="prose">Horizontal is the conventional test setting without manual rotation. In the other three settings every test image is rotated by an angle within the given range of absolute roll. The two numbers on each tile are AbsRel (lower is better) from Table 2, averaged across the five benchmarks.</p>
+    <div class="rolls">
+      <div class="roll">
+        <div class="ico" aria-hidden="true"><div class="frame" style="transform:rotate(0deg)"></div></div>
+        <div class="name">Horizontal</div><div class="range">0°</div>
+        <dl><dt>DAv2</dt><dd>0.096</dd><dt>ID-Constraint</dt><dd>0.099</dd></dl>
+      </div>
+      <div class="roll">
+        <div class="ico" aria-hidden="true"><div class="frame" style="transform:rotate(15deg)"></div></div>
+        <div class="name">Shaking</div><div class="range">[0°, 15°]</div>
+        <dl><dt>DAv2</dt><dd>0.109</dd><dt>ID-Constraint</dt><dd>0.103</dd></dl>
+      </div>
+      <div class="roll">
+        <div class="ico" aria-hidden="true"><div class="frame" style="transform:rotate(45deg)"></div></div>
+        <div class="name">Rolling</div><div class="range">[0°, 45°]</div>
+        <dl><dt>DAv2</dt><dd>0.119</dd><dt>ID-Constraint</dt><dd>0.104</dd></dl>
+      </div>
+      <div class="roll">
+        <div class="ico" aria-hidden="true"><div class="frame" style="transform:rotate(90deg)"></div></div>
+        <div class="name">Tipping</div><div class="range">[0°, 90°]</div>
+        <dl><dt>DAv2</dt><dd>0.127</dd><dt>ID-Constraint</dt><dd>0.106</dd></dl>
+      </div>
+    </div>
+    <p class="prose">Roll angles beyond 90° are extremely rare and can be losslessly mapped back to this range via a 90° rotation, so the experiments focus on these four intervals.</p>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <p class="eyebrow">Method</p>
+    <h2>Two intuitive remedies, then a constraint on the features</h2>
+
+    <div class="prose">
+      <h3>Baseline: distillation from Depth Anything V2</h3>
+      <p>The algorithms are developed on ViT-based MDE models: a fine-tuned DINOv2 encoder extracts multi-level feature maps and a DPT decoder head produces the depth map. To accelerate training, the baseline adopts the distillation pipeline of Distill Any Depth (DistillAD) with Depth Anything V2 (DAv2, ViT-Large) as the teacher. The student uses the same encoder and outputs 4 feature maps at layers 4, 11, 17 and 23.</p>
+      <p>The training loss is the distillation loss of DistillAD with global normalization, an L1 distance between the normalized student and teacher depth maps (Eq. 1 of the paper), plus the gradient matching loss used in MiDaS and DAv2, computed in the affine-invariant inverse depth space.</p>
+
+      <h3>Remedy 1: re-balanced augmentation</h3>
+      <p>Following re-balanced augmentation in long-tailed classification, each training image is rotated by an angle θ uniformly sampled from [−90°, 90°]. To prevent the model from learning shortcut cues from padded boundaries, a random center crop is applied at the same time, uniformly preserving from 40% to 100% of the original image size. 10% of the samples are kept without augmentation (Appendix B). The paper notes that this can disrupt feature learning, because DINOv2 was pretrained without such augmentation.</p>
+
+      <h3>Remedy 2: horizon leveling</h3>
+      <p>A roll-angle prediction model estimates the roll directly from the image, and the image is rotated by the predicted angle to restore horizontal alignment. The predictor uses a ViT-Small backbone and a head composed of an attention pooling, a 1D batch norm, two linear layers and an optional tanh activation; it predicts the 2D vector (cos θ, sin θ). It is trained in two stages with data denoising: stage one treats most images as horizontally aligned and uses the applied rotation angle as supervision; stage two removes the half of the samples with the highest error and re-trains on the cleaned subset. The best model still has an average error of 25.90° (Table 1), which limits this remedy.</p>
+
+      <h3>Invariant Depth Constraint (ID-Constraint)</h3>
+      <p>Inspired by DepthCues (Danier et al., 2025), which shows that advances in MDE largely arise from implicitly learning human-like depth cues, the paper notes that several of these cue tasks are inherently rotation-invariant. ID-Constraint fine-tunes the DAv2 backbone with a set of Invariant Depth heads (ID Heads) and losses (ID Losses) on randomly rotated inputs. During training the ViT encoder is jointly optimized with the ID and MDE losses; the ID losses are added to the final loss with weight 1.0. At inference the ID Heads are discarded.</p>
+    </div>
+
+    <figure class="paper-fig narrow">
+      <img src="assets/fig3-id-constraint.png" width="970" height="393" loading="lazy" alt="Figure 3 of the paper: input images go through a ViT encoder; a DPT head outputs depth maps, while auxiliary ID Heads feed ID Losses (a BCE loss for yes/no region tasks and an L1 loss for pixel-level maps).">
+      <figcaption>Figure 3 of the paper. The proposed ID-Constraint with auxiliary ID Heads to enhance roll-robust feature learning.</figcaption>
+    </figure>
+
+    <div class="table-wrap">
+      <table class="wraptext">
+        <caption><b>The six rotation-invariant auxiliary tasks of ID-Constraint.</b> Tasks 1 to 4 are selected from the DepthCues benchmark because their labels remain consistent under rotation; tasks 5 and 6 are introduced by the paper. Sample counts are from the Implementation Details section.</caption>
+        <thead><tr><th>#</th><th>Task</th><th>Level</th><th>Question or target</th><th>Training samples</th><th>Loss</th><th>Head</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><th>Light and shadow</th><td>region</td><td>Does a shadow belong to an object?</td><td class="nw">4,716 (DepthCues)</td><td>BCE</td><td>masked average pooling of two objects, feature difference, MLP</td></tr>
+          <tr><td>2</td><th>Occlusion</th><td>region</td><td>Is an object partially occluded?</td><td class="nw">24,402 (DepthCues)</td><td>BCE</td><td>masked average pooling of one object, MLP</td></tr>
+          <tr><td>3</td><th>Size</th><td>region</td><td>Which of two objects is larger?</td><td class="nw">1,986 (DepthCues)</td><td>BCE</td><td>same structure as task 1</td></tr>
+          <tr><td>4</td><th>Texture gradient</th><td>region</td><td>Which of two regions is farther from the camera?</td><td class="nw">4,000 (DepthCues)</td><td>BCE</td><td>same structure as task 1</td></tr>
+          <tr><td>5</td><th>Local peak</th><td>pixel</td><td>Convex and concave structures of the teacher depth</td><td class="nw">20,000 SA-1B images</td><td>L1</td><td>shared DPT head, hidden dimension 128</td></tr>
+          <tr><td>6</td><th>Local slope</th><td>pixel</td><td>Mean absolute depth gradient along four directions</td><td class="nw">20,000 SA-1B images</td><td>L1</td><td>shared DPT head, hidden dimension 128</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="formula prose"><span class="no">(2)</span><i>Z</i><sup>p</sup> = (<i>D</i><sup>t</sup> ⊗ <i>K</i><sub>1</sub>) / (<i>M</i><sup>vp</sup> ⊗ <i>K</i><sub>1</sub>) − <i>D</i><sup>t</sup></div>
+    <div class="formula prose"><span class="no">(3)</span><i>Z</i><sup>s</sup> = ¼ Σ<sub><i>d</i></sub> | <i>D</i><sup>t</sup> ⊗ <i>K</i><sub><i>d</i></sub> |</div>
+    <div class="prose">
+      <p><i>Z</i><sup>p</sup> and <i>Z</i><sup>s</sup> are the local peak and local slope maps, ⊗ is convolution, <i>K</i><sub>1</sub> is a 5×5 kernel filled with ones, <i>K</i><sub><i>d</i></sub> ∈ {<i>K</i><sub>↓</sub>, <i>K</i><sub>→</sub>, <i>K</i><sub>↘</sub>, <i>K</i><sub>↙</sub>} are 5×5 directional slope-detection kernels, and <i>M</i><sup>vp</sup> is the valid-pixel mask. The maps are computed on the horizontal image and rotated together with the input. The paper chose local peak and slope because both are dense, local, affine-depth compatible and rotation-invariant; a surface normal vector is equivariant, not invariant, under image roll (Appendix E).</p>
+    </div>
+
+    <figure class="paper-fig narrow">
+      <img src="assets/fig6-id-tasks.png" width="986" height="750" loading="lazy" alt="Figure 6 of the paper: (a) examples of the four region-level tasks with coloured object masks: light and shadow, occlusion, size, texture gradient; (b) how the local peak map is computed with a 5 by 5 ones kernel and a valid mask, and how the local slope map is the mean absolute response of four directional 5 by 5 kernels.">
+      <figcaption>Figure 6 of the paper. (a) Examples of four region-level constraint supervision tasks whose prediction labels remain consistent under rotation. (b) Examples of two pixel-level constraint supervision tasks that compute rotation-invariant local peaks of depth and average absolute slopes in 4 directions.</figcaption>
+    </figure>
+
+    <div class="table-wrap">
+      <table class="wraptext">
+        <caption><b>Training configuration reported in the paper</b> (Implementation Details, Appendix B and Appendix D). The training code is not part of the public repository.</caption>
+        <thead><tr><th>Item</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><th>MDE training data</th><td>200,000 unlabeled SA-1B images (20 of the 1,000 tar files: <code>sa_000000.tar</code>, <code>sa_000050.tar</code>, …, <code>sa_000950.tar</code>) with pseudo depth labels from DAv2</td></tr>
+          <tr><th>ID-Constraint data</th><td>20,000 SA-1B images for the pixel-level tasks plus the DepthCues subsets; light-shadow, size and texture-gradient are upsampled 5×, 10× and 5×; approximately 107,842 effective samples per epoch</td></tr>
+          <tr><th>Input</th><td>resized and cropped to 560×560, then normalized</td></tr>
+          <tr><th>Optimizer</th><td>AdamW; learning rate 5×10<sup>−6</sup> for the ViT encoder and 5×10<sup>−5</sup> for the ID heads or DPT head; the DPT head is re-initialized before distillation</td></tr>
+          <tr><th>Schedule</th><td>MDE and ID-Constraint models: 1 epoch, batch size 8. Roll-angle prediction models: 5 epochs, batch size 64, L1 loss or cosine similarity loss</td></tr>
+          <tr><th>Environment</th><td>Python 3.12, PyTorch 2.7, TorchVision 0.22, a single A100-SXM4-80GB GPU</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="headline">
+  <div class="wrap">
+    <p class="eyebrow">Headline result</p>
+    <h2>Error climbs with roll for existing models. With ID-Constraint it stays nearly flat.</h2>
+    <p class="prose">The qualitative comparison at the top of this page is Figure 4 of the paper. Both charts plot AbsRel (lower is better) from Table 2 of the paper, averaged across the five benchmarks, on the same vertical scale. Hover or tap for exact values; the full table is below.</p>
+    <div class="charts">
+      <figure class="chart">
+        <h3>Existing MDE models</h3>
+        <ul class="legend"><li><i style="background:var(--s1)"></i>Marigold</li><li><i style="background:var(--s2)"></i>GenPercept</li><li><i style="background:var(--s3)"></i>DistillAD</li><li><i style="background:var(--s4)"></i>DAv2</li></ul>
+        <svg class="llc" viewBox="0 0 540 310" role="img" aria-label="AbsRel of four existing monocular depth estimation models under the four roll settings (Table 2 of the paper); lower is better, all four get worse as the roll range widens" data-chart='{"x": ["Horizontal|0°", "Shaking|[0°, 15°]", "Rolling|[0°, 45°]", "Tipping|[0°, 90°]"], "series": [{"name": "Marigold", "color": "var(--s1,#2a78d6)", "v": ["0.130", "0.146", "0.171", "0.200"]}, {"name": "GenPercept", "color": "var(--s2,#eb6834)", "v": ["0.130", "0.143", "0.164", "0.185"]}, {"name": "DistillAD", "color": "var(--s3,#1baf7a)", "v": ["0.099", "0.113", "0.124", "0.131"]}, {"name": "DAv2", "color": "var(--s4,#eda100)", "v": ["0.096", "0.109", "0.119", "0.127"]}]}'><style>.llc text{font:12px system-ui,sans-serif;font-family:inherit;fill:var(--ink-2,#5a544a)}.llc .v{fill:var(--ink,#16130f);font-weight:600;font-size:11.5px}.llc .nm{fill:var(--ink,#16130f)}.llc .grid{stroke:var(--rule,#d9d2c3);stroke-width:1}.llc .line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.llc .dot{stroke:var(--paper,#fff);stroke-width:2}.llc .cross{stroke:var(--ink-2,#888);stroke-width:1;stroke-dasharray:3 3;visibility:hidden}</style><line class="grid" x1="44" x2="340" y1="248.0" y2="248.0"/><text x="36" y="252.0" text-anchor="end">0.08</text><line class="grid" x1="44" x2="340" y1="170.7" y2="170.7"/><text x="36" y="174.7" text-anchor="end">0.12</text><line class="grid" x1="44" x2="340" y1="93.3" y2="93.3"/><text x="36" y="97.3" text-anchor="end">0.16</text><line class="grid" x1="44" x2="340" y1="16.0" y2="16.0"/><text x="36" y="20.0" text-anchor="end">0.20</text><text x="66.0" y="268" text-anchor="middle">Horizontal</text><text x="66.0" y="283" text-anchor="middle" style="font-size:11px">0°</text><text x="153.3" y="268" text-anchor="middle">Shaking</text><text x="153.3" y="283" text-anchor="middle" style="font-size:11px">[0°, 15°]</text><text x="240.7" y="268" text-anchor="middle">Rolling</text><text x="240.7" y="283" text-anchor="middle" style="font-size:11px">[0°, 45°]</text><text x="328.0" y="268" text-anchor="middle">Tipping</text><text x="328.0" y="283" text-anchor="middle" style="font-size:11px">[0°, 90°]</text><text x="44" y="304" text-anchor="start" style="font-size:11px">Roll setting · AbsRel ↓, averaged across five benchmarks (Table 2)</text><line class="cross" x1="0" x2="0" y1="16" y2="248"/><polyline class="line" stroke="var(--s1,#2a78d6)" points="66.0,151.3 153.3,120.4 240.7,72.1 328.0,16.0"/><polyline class="line" stroke="var(--s2,#eb6834)" points="66.0,151.3 153.3,126.2 240.7,85.6 328.0,45.0"/><polyline class="line" stroke="var(--s3,#1baf7a)" points="66.0,211.3 153.3,184.2 240.7,162.9 328.0,149.4"/><polyline class="line" stroke="var(--s4,#eda100)" points="66.0,217.1 153.3,191.9 240.7,172.6 328.0,157.1"/><circle class="dot" cx="66.0" cy="151.3" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="153.3" cy="120.4" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="240.7" cy="72.1" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="328.0" cy="16.0" r="5" fill="var(--s1,#2a78d6)"/><text class="nm" x="340.0" y="20.0">Marigold <tspan class="v">0.200</tspan></text><circle class="dot" cx="66.0" cy="151.3" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="153.3" cy="126.2" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="240.7" cy="85.6" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="328.0" cy="45.0" r="5" fill="var(--s2,#eb6834)"/><text class="nm" x="340.0" y="49.0">GenPercept <tspan class="v">0.185</tspan></text><circle class="dot" cx="66.0" cy="211.3" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="153.3" cy="184.2" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="240.7" cy="162.9" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="328.0" cy="149.4" r="5" fill="var(--s3,#1baf7a)"/><text class="nm" x="340.0" y="153.4">DistillAD <tspan class="v">0.131</tspan></text><circle class="dot" cx="66.0" cy="217.1" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="153.3" cy="191.9" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="240.7" cy="172.6" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="328.0" cy="157.1" r="5" fill="var(--s4,#eda100)"/><text class="nm" x="340.0" y="171.4">DAv2 <tspan class="v">0.127</tspan></text><rect class="hit" data-i="0" x="22.3" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="1" x="109.7" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="2" x="197.0" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="3" x="284.3" y="16" width="87.3" height="232" fill="transparent"/></svg>
+        <div class="tip"></div>
+      </figure>
+      <figure class="chart">
+        <h3>Re-implemented baseline and the three remedies</h3>
+        <ul class="legend"><li><i style="background:var(--s1)"></i>Baseline</li><li><i style="background:var(--s2)"></i>Re-balanced Aug</li><li><i style="background:var(--s3)"></i>Horizon Leveling</li><li><i style="background:var(--s4)"></i>ID-Constraint</li></ul>
+        <svg class="llc" viewBox="0 0 540 310" role="img" aria-label="AbsRel of the re-implemented baseline, re-balanced augmentation, horizon leveling and ID-Constraint under the four roll settings (Table 2 of the paper); lower is better, ID-Constraint stays nearly flat" data-chart='{"x": ["Horizontal|0°", "Shaking|[0°, 15°]", "Rolling|[0°, 45°]", "Tipping|[0°, 90°]"], "series": [{"name": "Baseline", "color": "var(--s1,#2a78d6)", "v": ["0.100", "0.113", "0.125", "0.135"]}, {"name": "Re-balanced Aug", "color": "var(--s2,#eb6834)", "v": ["0.104", "0.111", "0.114", "0.119"]}, {"name": "Horizon Leveling", "color": "var(--s3,#1baf7a)", "v": ["0.100", "0.108", "0.110", "0.112"]}, {"name": "ID-Constraint", "color": "var(--s4,#eda100)", "v": ["0.099", "0.103", "0.104", "0.106"]}]}'><style>.llc text{font:12px system-ui,sans-serif;font-family:inherit;fill:var(--ink-2,#5a544a)}.llc .v{fill:var(--ink,#16130f);font-weight:600;font-size:11.5px}.llc .nm{fill:var(--ink,#16130f)}.llc .grid{stroke:var(--rule,#d9d2c3);stroke-width:1}.llc .line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.llc .dot{stroke:var(--paper,#fff);stroke-width:2}.llc .cross{stroke:var(--ink-2,#888);stroke-width:1;stroke-dasharray:3 3;visibility:hidden}</style><line class="grid" x1="44" x2="340" y1="248.0" y2="248.0"/><text x="36" y="252.0" text-anchor="end">0.08</text><line class="grid" x1="44" x2="340" y1="170.7" y2="170.7"/><text x="36" y="174.7" text-anchor="end">0.12</text><line class="grid" x1="44" x2="340" y1="93.3" y2="93.3"/><text x="36" y="97.3" text-anchor="end">0.16</text><line class="grid" x1="44" x2="340" y1="16.0" y2="16.0"/><text x="36" y="20.0" text-anchor="end">0.20</text><text x="66.0" y="268" text-anchor="middle">Horizontal</text><text x="66.0" y="283" text-anchor="middle" style="font-size:11px">0°</text><text x="153.3" y="268" text-anchor="middle">Shaking</text><text x="153.3" y="283" text-anchor="middle" style="font-size:11px">[0°, 15°]</text><text x="240.7" y="268" text-anchor="middle">Rolling</text><text x="240.7" y="283" text-anchor="middle" style="font-size:11px">[0°, 45°]</text><text x="328.0" y="268" text-anchor="middle">Tipping</text><text x="328.0" y="283" text-anchor="middle" style="font-size:11px">[0°, 90°]</text><text x="44" y="304" text-anchor="start" style="font-size:11px">Roll setting · AbsRel ↓, averaged across five benchmarks (Table 2)</text><line class="cross" x1="0" x2="0" y1="16" y2="248"/><polyline class="line" stroke="var(--s1,#2a78d6)" points="66.0,209.3 153.3,184.2 240.7,161.0 328.0,141.7"/><polyline class="line" stroke="var(--s2,#eb6834)" points="66.0,201.6 153.3,188.1 240.7,182.3 328.0,172.6"/><polyline class="line" stroke="var(--s3,#1baf7a)" points="66.0,209.3 153.3,193.9 240.7,190.0 328.0,186.1"/><polyline class="line" stroke="var(--s4,#eda100)" points="66.0,211.3 153.3,203.5 240.7,201.6 328.0,197.7"/><circle class="dot" cx="66.0" cy="209.3" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="153.3" cy="184.2" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="240.7" cy="161.0" r="5" fill="var(--s1,#2a78d6)"/><circle class="dot" cx="328.0" cy="141.7" r="5" fill="var(--s1,#2a78d6)"/><text class="nm" x="340.0" y="145.7">Baseline <tspan class="v">0.135</tspan></text><circle class="dot" cx="66.0" cy="201.6" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="153.3" cy="188.1" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="240.7" cy="182.3" r="5" fill="var(--s2,#eb6834)"/><circle class="dot" cx="328.0" cy="172.6" r="5" fill="var(--s2,#eb6834)"/><text class="nm" x="340.0" y="176.6">Re-balanced Aug <tspan class="v">0.119</tspan></text><circle class="dot" cx="66.0" cy="209.3" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="153.3" cy="193.9" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="240.7" cy="190.0" r="5" fill="var(--s3,#1baf7a)"/><circle class="dot" cx="328.0" cy="186.1" r="5" fill="var(--s3,#1baf7a)"/><text class="nm" x="340.0" y="194.6">Horizon Leveling <tspan class="v">0.112</tspan></text><circle class="dot" cx="66.0" cy="211.3" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="153.3" cy="203.5" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="240.7" cy="201.6" r="5" fill="var(--s4,#eda100)"/><circle class="dot" cx="328.0" cy="197.7" r="5" fill="var(--s4,#eda100)"/><text class="nm" x="340.0" y="212.6">ID-Constraint <tspan class="v">0.106</tspan></text><rect class="hit" data-i="0" x="22.3" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="1" x="109.7" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="2" x="197.0" y="16" width="87.3" height="232" fill="transparent"/><rect class="hit" data-i="3" x="284.3" y="16" width="87.3" height="232" fill="transparent"/></svg>
+        <div class="tip"></div>
+      </figure>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="lbl">additional inference parameters from ID-Constraint: the auxiliary heads are used only during training (Appendix E)</div></div>
+      <div class="stat"><div class="num">+15.4 ms</div><div class="lbl">latency of horizon leveling, the only additional inference cost: a ViT-S roll predictor of about 21M parameters, on one A100 with batch size 1 (Appendix E)</div></div>
+      <div class="stat"><div class="num">25.90°</div><div class="lbl">mean roll-angle error of the best image-only roll predictor in Table 1, which is why horizon leveling alone is not enough</div></div>
+    </div>
+    <p class="prose">The <i>ID-Constraint</i> row of Tables 2 and 3 coincides with the full configuration of the ablation in Table 4: re-balanced augmentation and the region and pixel ID losses during training, plus horizon leveling at inference. Without horizon leveling, the same model reaches 0.114 AbsRel and 0.903 δ<sub>1</sub> in the Tipping setting (Table 4).</p>
+  </div>
+</section>
+
+<section id="benchmark">
+  <div class="wrap">
+    <p class="eyebrow">Benchmark</p>
+    <h2>Five datasets × four roll settings</h2>
+    <div class="prose">
+      <p>All models are evaluated on DIODE, ScanNet, ETH3D, KITTI and NYUv2. Because neither DAv2 nor DistillAD has released evaluation code, the evaluation pipeline is based on GenPercept, and all evaluation samples are downloaded from the data links provided by GenPercept. The provided validity masks and the minimum and maximum depth thresholds determine the valid pixels; an image with fewer than 100 valid pixels is treated as corrupted and excluded. Rotations and resizing of depth maps and masks use nearest-neighbor interpolation. DAv2, DistillAD and the paper's models are evaluated in disparity (inverse-depth) space, Marigold and GenPercept in depth space, all with scale- and shift-invariant alignment. Metrics are mean absolute relative error (AbsRel) and δ<sub>1</sub> accuracy.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption><b>Evaluation benchmarks</b> (Appendix B of the paper): number of valid test samples after validity filtering and the valid depth range.</caption>
+        <thead><tr><th>Dataset</th><th>Scenes</th><th class="n">Valid test samples</th><th>Valid depth range</th></tr></thead>
+        <tbody>
+          <tr><th>DIODE</th><td>indoor and outdoor</td><td class="n">771</td><td>[0.6, 350]</td></tr>
+          <tr><th>ScanNet</th><td>indoor</td><td class="n">800</td><td>[1×10<sup>−3</sup>, 10]</td></tr>
+          <tr><th>ETH3D</th><td>high-resolution images, sparse depth</td><td class="n">454</td><td>[1×10<sup>−5</sup>, ∞)</td></tr>
+          <tr><th>KITTI</th><td>outdoor driving, very wide aspect ratio</td><td class="n">652</td><td>[1×10<sup>−5</sup>, 80]</td></tr>
+          <tr><th>NYUv2</th><td>indoor</td><td class="n">654</td><td>[1×10<sup>−3</sup>, 10]</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <p class="eyebrow">Results</p>
+    <h2>Full result tables</h2>
+    <p class="prose">All numbers are copied from arXiv:2608.00678v1. <b>Bold</b> marks the best result, as in the paper. An asterisk indicates a public model evaluated with the authors' re-implemented evaluation code. Highlighted rows are the methods trained by the authors.</p>
+
+    <div class="table-wrap"><table><caption><b>Table 2 of the paper.</b> State-of-the-art MDE models and the proposed algorithms under four roll settings. Results for each setting are averaged across five benchmarks. AbsRel: mean absolute relative error, lower is better; δ<sub>1</sub>: accuracy, higher is better.</caption><thead><tr><th rowspan="2">Method</th><th class="grp" colspan="2">Horizontal (0°)</th><th class="grp" colspan="2">Shaking [0°, 15°]</th><th class="grp" colspan="2">Rolling [0°, 45°]</th><th class="grp" colspan="2">Tipping [0°, 90°]</th></tr><tr><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead><tbody><tr><th>Marigold*</th><td class="n g">0.130</td><td class="n">0.886</td><td class="n g">0.146</td><td class="n">0.859</td><td class="n g">0.171</td><td class="n">0.814</td><td class="n g">0.200</td><td class="n">0.765</td></tr><tr><th>GenPercept*</th><td class="n g">0.130</td><td class="n">0.891</td><td class="n g">0.143</td><td class="n">0.869</td><td class="n g">0.164</td><td class="n">0.830</td><td class="n g">0.185</td><td class="n">0.794</td></tr><tr class="sep"><th>DAv2*</th><td class="n g"><b>0.096</b></td><td class="n"><b>0.922</b></td><td class="n g">0.109</td><td class="n">0.906</td><td class="n g">0.119</td><td class="n">0.895</td><td class="n g">0.127</td><td class="n">0.883</td></tr><tr><th>DistillAD*</th><td class="n g">0.099</td><td class="n">0.920</td><td class="n g">0.113</td><td class="n">0.900</td><td class="n g">0.124</td><td class="n">0.889</td><td class="n g">0.131</td><td class="n">0.878</td></tr><tr class="ours sep"><th>(ours) Baseline</th><td class="n g">0.100</td><td class="n">0.920</td><td class="n g">0.113</td><td class="n">0.901</td><td class="n g">0.125</td><td class="n">0.887</td><td class="n g">0.135</td><td class="n">0.873</td></tr><tr class="ours"><th>(ours) Re-balanced Aug</th><td class="n g">0.104</td><td class="n">0.918</td><td class="n g">0.111</td><td class="n">0.904</td><td class="n g">0.114</td><td class="n">0.901</td><td class="n g">0.119</td><td class="n">0.897</td></tr><tr class="ours"><th>(ours) Horizon Leveling</th><td class="n g">0.100</td><td class="n">0.920</td><td class="n g">0.108</td><td class="n">0.910</td><td class="n g">0.110</td><td class="n">0.907</td><td class="n g">0.112</td><td class="n">0.905</td></tr><tr class="ours"><th>(ours) ID-Constraint</th><td class="n g">0.099</td><td class="n">0.920</td><td class="n g"><b>0.103</b></td><td class="n"><b>0.916</b></td><td class="n g"><b>0.104</b></td><td class="n"><b>0.915</b></td><td class="n g"><b>0.106</b></td><td class="n"><b>0.913</b></td></tr></tbody></table></div>
+
+    <h3>Hardest setting, per benchmark</h3>
+    <figure class="bars bench"><ul class="legend"><li><i class="s1"></i>DAv2*</li><li><i class="s2"></i>(ours) Baseline</li><li><i class="acc"></i>(ours) ID-Constraint</li></ul><div class="bar-group"><span class="bg">DIODE</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:78.8%" title="DAv2*"></i><span class="bv">0.268</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:82.1%" title="(ours) Baseline"></i><span class="bv">0.279</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:75.0%" title="(ours) ID-Constraint"></i><span class="bv">0.255</span></span></div></div></div><div class="bar-group"><span class="bg">ScanNet</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:22.9%" title="DAv2*"></i><span class="bv">0.078</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:25.0%" title="(ours) Baseline"></i><span class="bv">0.085</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:15.0%" title="(ours) ID-Constraint"></i><span class="bv">0.051</span></span></div></div></div><div class="bar-group"><span class="bg">ETH3D</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:22.1%" title="DAv2*"></i><span class="bv">0.075</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:24.1%" title="(ours) Baseline"></i><span class="bv">0.082</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:15.0%" title="(ours) ID-Constraint"></i><span class="bv">0.051</span></span></div></div></div><div class="bar-group"><span class="bg">KITTI</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:34.7%" title="DAv2*"></i><span class="bv">0.118</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:36.5%" title="(ours) Baseline"></i><span class="bv">0.124</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:25.3%" title="(ours) ID-Constraint"></i><span class="bv">0.086</span></span></div></div></div><div class="bar-group"><span class="bg">NYUv2</span><div><div class="bar-row"><span class="bt"><i class="s1" style="width:20.3%" title="DAv2*"></i><span class="bv">0.069</span></span></div><div class="bar-row"><span class="bt"><i class="s2" style="width:21.8%" title="(ours) Baseline"></i><span class="bv">0.074</span></span></div><div class="bar-row"><span class="bt"><i class="acc" style="width:16.2%" title="(ours) ID-Constraint"></i><span class="bv">0.055</span></span></div></div></div><figcaption>AbsRel (lower is better) per benchmark in the Tipping [0°, 90°] setting for DAv2, the re-implemented baseline and ID-Constraint. Bars start at zero and share one scale. Source: Table 3 of the paper.</figcaption></figure>
+    <div class="table-wrap"><table><caption><b>Table 3 of the paper.</b> Results per benchmark under the hardest Tipping [0°, 90°] setting.</caption><thead><tr><th rowspan="2">Method</th><th class="grp" colspan="2">DIODE</th><th class="grp" colspan="2">ScanNet</th><th class="grp" colspan="2">ETH3D</th><th class="grp" colspan="2">KITTI</th><th class="grp" colspan="2">NYUv2</th></tr><tr><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead><tbody><tr><th>Marigold*</th><td class="n g">0.337</td><td class="n">0.705</td><td class="n g">0.133</td><td class="n">0.832</td><td class="n g">0.129</td><td class="n">0.842</td><td class="n g">0.246</td><td class="n">0.613</td><td class="n g">0.125</td><td class="n">0.854</td></tr><tr><th>GenPercept*</th><td class="n g">0.337</td><td class="n">0.715</td><td class="n g">0.113</td><td class="n">0.871</td><td class="n g">0.114</td><td class="n">0.877</td><td class="n g">0.225</td><td class="n">0.633</td><td class="n g">0.103</td><td class="n">0.895</td></tr><tr class="sep"><th>DAv2*</th><td class="n g">0.268</td><td class="n">0.736</td><td class="n g">0.078</td><td class="n">0.938</td><td class="n g">0.075</td><td class="n">0.941</td><td class="n g">0.118</td><td class="n">0.873</td><td class="n g">0.069</td><td class="n">0.957</td></tr><tr><th>DistillAD*</th><td class="n g">0.271</td><td class="n">0.735</td><td class="n g">0.079</td><td class="n">0.939</td><td class="n g">0.080</td><td class="n">0.932</td><td class="n g">0.124</td><td class="n">0.863</td><td class="n g">0.074</td><td class="n">0.952</td></tr><tr class="ours sep"><th>(ours) Baseline</th><td class="n g">0.279</td><td class="n">0.732</td><td class="n g">0.085</td><td class="n">0.923</td><td class="n g">0.082</td><td class="n">0.929</td><td class="n g">0.124</td><td class="n">0.863</td><td class="n g">0.074</td><td class="n">0.950</td></tr><tr class="ours"><th>(ours) Re-balanced Aug</th><td class="n g">0.263</td><td class="n">0.748</td><td class="n g">0.058</td><td class="n">0.967</td><td class="n g">0.068</td><td class="n">0.957</td><td class="n g">0.115</td><td class="n">0.877</td><td class="n g">0.062</td><td class="n">0.967</td></tr><tr class="ours"><th>(ours) Horizon Leveling</th><td class="n g">0.262</td><td class="n">0.745</td><td class="n g">0.061</td><td class="n">0.958</td><td class="n g">0.057</td><td class="n">0.967</td><td class="n g">0.087</td><td class="n">0.927</td><td class="n g">0.061</td><td class="n">0.962</td></tr><tr class="ours"><th>(ours) ID-Constraint</th><td class="n g"><b>0.255</b></td><td class="n"><b>0.753</b></td><td class="n g"><b>0.051</b></td><td class="n"><b>0.971</b></td><td class="n g"><b>0.051</b></td><td class="n"><b>0.972</b></td><td class="n g"><b>0.086</b></td><td class="n"><b>0.931</b></td><td class="n g"><b>0.055</b></td><td class="n"><b>0.971</b></td></tr></tbody></table></div>
+
+    <figure class="paper-fig">
+      <img src="assets/fig11-qualitative-street.jpg" width="2109" height="1195" loading="lazy" alt="Figure 11 of the paper: a street scene with pedestrians under the Horizontal, Shaking (15°), Rolling (45°) and Tipping (90°) settings, with depth predictions from GenPercept, Marigold, PromptDA, DAv2, DistillAD and ID-Constraint and small grayscale error maps.">
+      <figcaption>Figure 11 of the paper. A second qualitative comparison, on an outdoor street scene. The bottom-right grayscale images visualize the absolute error maps corresponding to their respective horizontal depth predictions. GenPercept, Marigold and PromptDA produce outputs in the depth space, while the remaining output in the disparity space.</figcaption>
+    </figure>
+    <figure class="paper-fig">
+      <img src="assets/fig9-depth-anything-3.jpg" width="2090" height="905" loading="lazy" alt="Figure 9 of the paper: Depth Anything 3 depth maps for an indoor table scene, a street with pedestrians and a building with trees under the Horizontal, Shaking (15°), Rolling (45°) and Tipping (90°) settings; boundaries become fuzzy under Rolling and Tipping.">
+      <figcaption>Figure 9 of the paper. Qualitative analysis of the recently released Depth Anything 3. Depth maps are generated from its Hugging Face online demo. The fuzzy boundaries observed under the Rolling and Tipping settings further confirm the persistent robustness issues induced by the horizontal prior.</figcaption>
+    </figure>
+
+    <h3>Ablation</h3>
+    <figure class="bars"><div class="bar-row"><span class="bl">Baseline</span><span class="bt"><i style="width:90.0%"></i></span><span class="bv">0.135</span><span class="bd">δ<sub>1</sub> 0.873</span></div><div class="bar-row"><span class="bl">+ Re-balanced Aug</span><span class="bt"><i style="width:79.3%"></i></span><span class="bv">0.119</span><span class="bd">δ<sub>1</sub> 0.897</span></div><div class="bar-row"><span class="bl">+ Re-balanced Aug + region &amp; pixel ID losses</span><span class="bt"><i style="width:76.0%"></i></span><span class="bv">0.114</span><span class="bd">δ<sub>1</sub> 0.903</span></div><div class="bar-row"><span class="bl">+ Horizon Leveling</span><span class="bt"><i style="width:74.7%"></i></span><span class="bv">0.112</span><span class="bd">δ<sub>1</sub> 0.905</span></div><div class="bar-row"><span class="bl">+ Re-balanced Aug + Horizon Leveling</span><span class="bt"><i style="width:73.3%"></i></span><span class="bv">0.110</span><span class="bd">δ<sub>1</sub> 0.909</span></div><div class="bar-row"><span class="bl">+ Aug + Leveling + region losses</span><span class="bt"><i style="width:72.0%"></i></span><span class="bv">0.108</span><span class="bd">δ<sub>1</sub> 0.910</span></div><div class="bar-row"><span class="bl">+ Aug + Leveling + pixel losses</span><span class="bt"><i style="width:71.3%"></i></span><span class="bv">0.107</span><span class="bd">δ<sub>1</sub> 0.912</span></div><div class="bar-row hl"><span class="bl">+ Aug + Leveling + region &amp; pixel losses (full ID-Constraint)</span><span class="bt"><i style="width:70.7%"></i></span><span class="bv">0.106</span><span class="bd">δ<sub>1</sub> 0.913</span></div><figcaption>AbsRel (lower is better) for each configuration of the ablation in the Tipping [0°, 90°] setting, averaged across five benchmarks; δ<sub>1</sub> on the right. Bars start at zero. Source: Table 4 of the paper.</figcaption></figure>
+    <div class="table-wrap">
+      <table>
+        <caption><b>Table 4 of the paper.</b> Ablation study analyzing the impact of each module under the most challenging Tipping [0°, 90°] setting, averaged across five benchmarks. ID-Constraint requires re-balanced augmentation for invariant feature learning, so re-balanced augmentation is its default setting; horizon leveling is a training-free adjustment that can be applied on top of all settings.</caption>
+        <thead><tr><th class="c">Re-balanced Aug</th><th class="c">Horizon Leveling</th><th class="c">Region Losses</th><th class="c">Pixel Losses</th><th class="c">ID-Constraint</th><th class="n">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead>
+        <tbody>
+          <tr><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="n">0.135</td><td class="n">0.873</td></tr>
+          <tr class="sep"><td class="c">✓</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="n">0.119</td><td class="n">0.897</td></tr>
+          <tr><td class="c">✓</td><td class="c"></td><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="n">0.114</td><td class="n">0.903</td></tr>
+          <tr class="sep"><td class="c"></td><td class="c">✓</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="n">0.112</td><td class="n">0.905</td></tr>
+          <tr><td class="c">✓</td><td class="c">✓</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="n">0.110</td><td class="n">0.909</td></tr>
+          <tr class="sep"><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="c"></td><td class="c">✓</td><td class="n">0.108</td><td class="n">0.910</td></tr>
+          <tr><td class="c">✓</td><td class="c">✓</td><td class="c"></td><td class="c">✓</td><td class="c">✓</td><td class="n">0.107</td><td class="n">0.912</td></tr>
+          <tr class="ours"><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td><td class="n"><b>0.106</b></td><td class="n"><b>0.913</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <h3>Fine-grained roll intervals</h3>
+    <figure class="paper-fig narrow">
+      <img src="assets/fig5-fine-grained-roll.png" width="984" height="458" loading="lazy" alt="Figure 5 of the paper: two line plots of delta-1 and AbsRel over seven roll-angle intervals from [0, 0] to [75, 90] for DAv2, DistillAD, Baseline, Base (Crop), Re-balance, H Level and ID-Constraint. Most methods degrade up to about 60 degrees and rebound near 90 degrees; ID-Constraint changes the least.">
+      <figcaption>Figure 5 of the paper. The averaged results across five benchmarks on fine-grained roll intervals. H Level means horizon leveling. Base (Crop) crops each rotated image to match the original resolution, to verify that the degradation is not solely an artifact of resolution changes.</figcaption>
+    </figure>
+
+    <h3>Additional tables</h3>
+    <details class="more">
+      <summary>Table 1 (roll-angle prediction models) and Tables 5 to 7 (per-benchmark results for the Horizontal, Shaking and Rolling settings, Appendix D)</summary>
+    <div class="table-wrap">
+      <table>
+        <caption><b>Table 1 of the paper.</b> Roll-angle prediction models under different configurations: training stage, output activation and training loss. Angle error is the mean error in degrees on the five benchmark datasets under the Tipping scenario.</caption>
+        <thead><tr><th>Stage</th><th>Activation</th><th class="c">L1 loss</th><th class="c">COS loss</th><th class="n">Angle error (°)</th></tr></thead>
+        <tbody>
+          <tr><td>Stage-1</td><td>tanh</td><td class="c">✓</td><td class="c"></td><td class="n">45.69</td></tr>
+          <tr><td>Stage-1</td><td>tanh</td><td class="c"></td><td class="c">✓</td><td class="n">47.94</td></tr>
+          <tr class="sep"><td>Stage-2</td><td>none</td><td class="c">✓</td><td class="c">✓</td><td class="n">28.53</td></tr>
+          <tr><td>Stage-2</td><td>none</td><td class="c"></td><td class="c">✓</td><td class="n">40.41</td></tr>
+          <tr><td>Stage-2</td><td>none</td><td class="c">✓</td><td class="c"></td><td class="n">46.32</td></tr>
+          <tr><td>Stage-2</td><td>tanh</td><td class="c">✓</td><td class="c">✓</td><td class="n">29.49</td></tr>
+          <tr><td>Stage-2</td><td>tanh</td><td class="c"></td><td class="c">✓</td><td class="n">31.99</td></tr>
+          <tr><td>Stage-2</td><td>tanh</td><td class="c">✓</td><td class="c"></td><td class="n"><b>25.90</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap"><table><caption><b>Table 5 of the paper.</b> Results per benchmark under the Horizontal (0°) setting, the conventional test setting without manual rotation.</caption><thead><tr><th rowspan="2">Method</th><th class="grp" colspan="2">DIODE</th><th class="grp" colspan="2">ScanNet</th><th class="grp" colspan="2">ETH3D</th><th class="grp" colspan="2">KITTI</th><th class="grp" colspan="2">NYUv2</th></tr><tr><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead><tbody><tr><th>Marigold*</th><td class="n g">0.279</td><td class="n"><b>0.776</b></td><td class="n g">0.072</td><td class="n">0.946</td><td class="n g">0.068</td><td class="n">0.956</td><td class="n g">0.137</td><td class="n">0.821</td><td class="n g">0.061</td><td class="n">0.958</td></tr><tr><th>GenPercept*</th><td class="n g">0.297</td><td class="n">0.764</td><td class="n g">0.062</td><td class="n">0.959</td><td class="n g">0.073</td><td class="n">0.951</td><td class="n g">0.130</td><td class="n">0.841</td><td class="n g">0.058</td><td class="n">0.963</td></tr><tr class="sep"><th>DAv2*</th><td class="n g"><b>0.245</b></td><td class="n">0.762</td><td class="n g"><b>0.042</b></td><td class="n"><b>0.979</b></td><td class="n g"><b>0.043</b></td><td class="n"><b>0.983</b></td><td class="n g">0.077</td><td class="n"><b>0.944</b></td><td class="n g"><b>0.044</b></td><td class="n"><b>0.979</b></td></tr><tr><th>DistillAD*</th><td class="n g">0.246</td><td class="n">0.758</td><td class="n g">0.046</td><td class="n">0.978</td><td class="n g">0.050</td><td class="n">0.977</td><td class="n g"><b>0.074</b></td><td class="n">0.943</td><td class="n g">0.047</td><td class="n">0.977</td></tr><tr class="ours sep"><th>(ours) Baseline</th><td class="n g">0.252</td><td class="n">0.756</td><td class="n g">0.046</td><td class="n">0.977</td><td class="n g">0.045</td><td class="n">0.981</td><td class="n g">0.077</td><td class="n">0.943</td><td class="n g">0.047</td><td class="n">0.977</td></tr><tr class="ours"><th>(ours) Re-balanced Aug</th><td class="n g">0.251</td><td class="n">0.758</td><td class="n g">0.049</td><td class="n">0.977</td><td class="n g">0.058</td><td class="n">0.973</td><td class="n g">0.083</td><td class="n">0.937</td><td class="n g">0.051</td><td class="n">0.977</td></tr><tr class="ours"><th>(ours) Horizon Leveling</th><td class="n g">0.252</td><td class="n">0.756</td><td class="n g">0.046</td><td class="n">0.977</td><td class="n g">0.045</td><td class="n">0.981</td><td class="n g">0.077</td><td class="n">0.943</td><td class="n g">0.047</td><td class="n">0.977</td></tr><tr class="ours"><th>(ours) ID-Constraint</th><td class="n g">0.251</td><td class="n">0.757</td><td class="n g">0.045</td><td class="n">0.977</td><td class="n g"><b>0.043</b></td><td class="n">0.981</td><td class="n g">0.077</td><td class="n"><b>0.944</b></td><td class="n g">0.047</td><td class="n">0.977</td></tr></tbody></table></div>
+    <div class="table-wrap"><table><caption><b>Table 6 of the paper.</b> Results per benchmark under the Shaking [0°, 15°] setting.</caption><thead><tr><th rowspan="2">Method</th><th class="grp" colspan="2">DIODE</th><th class="grp" colspan="2">ScanNet</th><th class="grp" colspan="2">ETH3D</th><th class="grp" colspan="2">KITTI</th><th class="grp" colspan="2">NYUv2</th></tr><tr><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead><tbody><tr><th>Marigold*</th><td class="n g">0.294</td><td class="n"><b>0.758</b></td><td class="n g">0.089</td><td class="n">0.917</td><td class="n g">0.080</td><td class="n">0.939</td><td class="n g">0.161</td><td class="n">0.758</td><td class="n g">0.069</td><td class="n">0.950</td></tr><tr><th>GenPercept*</th><td class="n g">0.306</td><td class="n">0.752</td><td class="n g">0.081</td><td class="n">0.929</td><td class="n g">0.080</td><td class="n">0.944</td><td class="n g">0.149</td><td class="n">0.793</td><td class="n g">0.064</td><td class="n">0.956</td></tr><tr class="sep"><th>DAv2*</th><td class="n g"><b>0.250</b></td><td class="n">0.755</td><td class="n g">0.049</td><td class="n">0.972</td><td class="n g">0.051</td><td class="n"><b>0.976</b></td><td class="n g">0.115</td><td class="n">0.881</td><td class="n g"><b>0.049</b></td><td class="n"><b>0.977</b></td></tr><tr><th>DistillAD*</th><td class="n g">0.252</td><td class="n">0.750</td><td class="n g">0.053</td><td class="n">0.970</td><td class="n g">0.059</td><td class="n">0.969</td><td class="n g">0.122</td><td class="n">0.871</td><td class="n g">0.053</td><td class="n">0.974</td></tr><tr class="ours sep"><th>(ours) Baseline</th><td class="n g">0.256</td><td class="n">0.751</td><td class="n g">0.053</td><td class="n">0.968</td><td class="n g">0.055</td><td class="n">0.971</td><td class="n g">0.118</td><td class="n">0.874</td><td class="n g">0.051</td><td class="n">0.975</td></tr><tr class="ours"><th>(ours) Re-balanced Aug</th><td class="n g">0.253</td><td class="n">0.757</td><td class="n g"><b>0.047</b></td><td class="n"><b>0.977</b></td><td class="n g">0.056</td><td class="n">0.973</td><td class="n g">0.119</td><td class="n">0.866</td><td class="n g">0.052</td><td class="n">0.976</td></tr><tr class="ours"><th>(ours) Horizon Leveling</th><td class="n g">0.259</td><td class="n">0.748</td><td class="n g">0.059</td><td class="n">0.959</td><td class="n g">0.056</td><td class="n">0.969</td><td class="n g"><b>0.080</b></td><td class="n">0.939</td><td class="n g">0.053</td><td class="n">0.970</td></tr><tr class="ours"><th>(ours) ID-Constraint</th><td class="n g">0.254</td><td class="n">0.754</td><td class="n g">0.049</td><td class="n">0.972</td><td class="n g"><b>0.049</b></td><td class="n">0.975</td><td class="n g"><b>0.080</b></td><td class="n"><b>0.941</b></td><td class="n g"><b>0.049</b></td><td class="n">0.974</td></tr></tbody></table></div>
+    <div class="table-wrap"><table><caption><b>Table 7 of the paper.</b> Results per benchmark under the Rolling [0°, 45°] setting.</caption><thead><tr><th rowspan="2">Method</th><th class="grp" colspan="2">DIODE</th><th class="grp" colspan="2">ScanNet</th><th class="grp" colspan="2">ETH3D</th><th class="grp" colspan="2">KITTI</th><th class="grp" colspan="2">NYUv2</th></tr><tr><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th><th class="n g">AbsRel ↓</th><th class="n">δ<sub>1</sub> ↑</th></tr></thead><tbody><tr><th>Marigold*</th><td class="n g">0.319</td><td class="n">0.729</td><td class="n g">0.110</td><td class="n">0.878</td><td class="n g">0.108</td><td class="n">0.889</td><td class="n g">0.198</td><td class="n">0.682</td><td class="n g">0.091</td><td class="n">0.918</td></tr><tr><th>GenPercept*</th><td class="n g">0.326</td><td class="n">0.725</td><td class="n g">0.094</td><td class="n">0.908</td><td class="n g">0.095</td><td class="n">0.915</td><td class="n g">0.190</td><td class="n">0.697</td><td class="n g">0.081</td><td class="n">0.933</td></tr><tr class="sep"><th>DAv2*</th><td class="n g">0.257</td><td class="n">0.748</td><td class="n g">0.064</td><td class="n">0.956</td><td class="n g">0.065</td><td class="n">0.958</td><td class="n g">0.118</td><td class="n">0.877</td><td class="n g">0.060</td><td class="n">0.969</td></tr><tr><th>DistillAD*</th><td class="n g">0.261</td><td class="n">0.744</td><td class="n g">0.068</td><td class="n">0.953</td><td class="n g">0.073</td><td class="n">0.951</td><td class="n g">0.125</td><td class="n">0.866</td><td class="n g">0.066</td><td class="n">0.963</td></tr><tr class="ours sep"><th>(ours) Baseline</th><td class="n g">0.267</td><td class="n">0.742</td><td class="n g">0.071</td><td class="n">0.945</td><td class="n g">0.073</td><td class="n">0.948</td><td class="n g">0.121</td><td class="n">0.869</td><td class="n g">0.064</td><td class="n">0.964</td></tr><tr class="ours"><th>(ours) Re-balanced Aug</th><td class="n g">0.258</td><td class="n">0.753</td><td class="n g"><b>0.051</b></td><td class="n"><b>0.973</b></td><td class="n g">0.062</td><td class="n">0.964</td><td class="n g">0.115</td><td class="n">0.875</td><td class="n g">0.057</td><td class="n">0.972</td></tr><tr class="ours"><th>(ours) Horizon Leveling</th><td class="n g">0.262</td><td class="n">0.745</td><td class="n g">0.060</td><td class="n">0.957</td><td class="n g">0.056</td><td class="n">0.968</td><td class="n g"><b>0.084</b></td><td class="n">0.934</td><td class="n g">0.056</td><td class="n">0.966</td></tr><tr class="ours"><th>(ours) ID-Constraint</th><td class="n g"><b>0.255</b></td><td class="n"><b>0.754</b></td><td class="n g"><b>0.051</b></td><td class="n">0.971</td><td class="n g"><b>0.050</b></td><td class="n"><b>0.973</b></td><td class="n g"><b>0.084</b></td><td class="n"><b>0.935</b></td><td class="n g"><b>0.051</b></td><td class="n"><b>0.973</b></td></tr></tbody></table></div>
+    </details>
+  </div>
+</section>
+
+<section id="qa">
+  <div class="wrap">
+    <p class="eyebrow">Q&amp;A</p>
+    <h2>Questions and answers</h2>
+
+    <details open>
+      <summary>What is the Horizontal Prior in monocular depth estimation?</summary>
+      <p>The Horizontal Prior is the phenomenon whereby naturally collected real-world images tend to be captured in approximately horizontal orientations, resulting in a long-tailed distribution of absolute roll angles. As a consequence, the depth estimation error for an image with roll angle θ &gt; 0° is significantly larger than for the corresponding horizontal image. The paper presents it as a new source of long-tailed bias in monocular depth estimation and supports it with three pieces of evidence: natural photographic data and the averaged depth map of 20,000 SA-1B images, the degradation of multiple MDE models when controlled roll increases, and a fine-grained roll analysis in which model behavior correlates with the roll distribution.</p>
+    </details>
+    <details>
+      <summary>How much do depth models such as Depth Anything V2 degrade when the camera rolls?</summary>
+      <p>Averaged over five benchmarks, the AbsRel of Depth Anything V2 rises from 0.096 to 0.127 (32% worse) and δ1 falls from 0.922 to 0.883 (3.9 points) between the Horizontal and Tipping [0°, 90°] settings. For the single image of Figure 1(a) rolled by 45°, AbsRel degrades by 45.7% (0.138 to 0.201) and δ1 by 8.7 points (0.869 to 0.782). Marigold goes from 0.130 to 0.200 AbsRel, GenPercept from 0.130 to 0.185 and Distill Any Depth from 0.099 to 0.131 (Table 2 and Appendix E).</p>
+    </details>
+    <details>
+      <summary>Why is rotation augmentation alone not enough?</summary>
+      <p>Re-balanced augmentation, which rotates training images by an angle uniformly sampled from [−90°, 90°], improves the Tipping setting from 0.135 to 0.119 AbsRel, but it is slightly worse than the baseline on upright images (0.104 vs. 0.100 AbsRel in the Horizontal setting, Table 2). The paper explains that it can disrupt feature learning: DINOv2 was pretrained without such augmentation, so it may enlarge the domain gap between pretraining and fine-tuning data.</p>
+    </details>
+    <details>
+      <summary>Why not simply level the horizon before predicting depth?</summary>
+      <p>Horizon leveling needs the roll angle. Commercial solutions typically rely on hardware sensors such as an IMU, which are unavailable for image datasets, and estimating roll from a single image is inaccurate: the best roll-angle predictor in the paper has a mean error of 25.90° (Table 1), and adapting PerspectiveFields improves it to 18.7° on the same test data (Appendix E). Since even mild rotations of [0°, 15°] already cause substantial degradation, horizon leveling alone reaches 0.112 AbsRel in the Tipping setting, compared with 0.106 for ID-Constraint (Table 2).</p>
+    </details>
+    <details>
+      <summary>Does ID-Constraint make inference slower or the model larger?</summary>
+      <p>No. ID-Constraint adds zero inference parameters, because the auxiliary ID Heads are used only during training and are discarded afterwards. The only additional inference cost in the reported configuration is horizon leveling, which uses a ViT-S roll-angle predictor of about 21M parameters and adds 15.4 ms latency on one A100 with batch size 1 (Appendix E).</p>
+    </details>
+    <details>
+      <summary>Why local peak and local slope instead of surface normals?</summary>
+      <p>The paper chose local peak and local slope because both are dense, local, compatible with affine-invariant depth, and rotation-invariant. Surface normals also have potential but are not a direct replacement: a normal vector is equivariant, not invariant, under image roll, because its components rotate with the image coordinate system (Appendix E).</p>
+    </details>
+    <details>
+      <summary>Does ID-Constraint hurt accuracy on ordinary upright images?</summary>
+      <p>In the Horizontal setting ID-Constraint obtains 0.099 AbsRel and 0.920 δ1, compared with 0.100 and 0.920 for the re-implemented baseline trained under the same conditions (Table 2). Depth Anything V2 is slightly better in this setting (0.096 and 0.922); the paper attributes this to the weaker performance of the re-implemented baseline, since the training code of DAv2 is not public.</p>
+    </details>
+    <details>
+      <summary>Are the improvements statistically reliable?</summary>
+      <p>The paper reports paired bootstrap confidence intervals with 1K per-image resamples in the Tipping setting. ID-Constraint versus re-balanced augmentation plus horizon leveling gives Δδ1 = +0.004 with a 95% CI of [0.0026, 0.0052] and ΔAbsRel = −0.004 with a 95% CI of [−0.0047, −0.0031] (Appendix E). The script used for this analysis, paired_bootstrap.py, is in the repository.</p>
+    </details>
+    <details>
+      <summary>Why does performance rebound near 90° of roll?</summary>
+      <p>In the fine-grained analysis (Figure 5), performance degrades gradually within [0°, 60°] and improves unexpectedly near 90°. The paper explains that a small portion of photos taken by cameras or smartphones fail to undergo horizontal correction, so the training distribution itself has a local peak near 90° (Figure 7). Methods that incorporate horizon leveling show an almost monotonic trend instead (Appendix C).</p>
+    </details>
+    <details>
+      <summary>Is the degradation just an artifact of the resolution change caused by rotation?</summary>
+      <p>No. Rotating an image toward 45° increases its effective resolution, which by itself makes prediction harder for a ViT with a fixed input size. The paper therefore adds a Base (Crop) setting in which each rotated image is cropped to match the original resolution. Performance improves slightly with cropping, but the overall downward trend remains consistent with the baseline (Figure 5 and Appendix D).</p>
+    </details>
+    <details>
+      <summary>Are newer or stronger models such as Depth Anything 3 or PromptDA also affected?</summary>
+      <p>Qualitatively, yes. Using the online demo of Depth Anything 3, the paper shows blurred boundaries around table legs and human shapes under the Rolling and Tipping settings (Figure 9). PromptDA, a depth super-resolution model that takes a low-resolution ground-truth depth map as input, still produces noticeably blurred edges under Tipping (Figure 4). The paper reports no quantitative results for these two models.</p>
+    </details>
+    <details>
+      <summary>How does this work relate to long-tailed classification?</summary>
+      <p>The paper maps the two intuitive remedies onto the two families of long-tailed classification methods: re-balanced augmentation corresponds to re-balanced training, and horizon leveling corresponds to training-free adjustment at inference. ID-Constraint instead targets feature learning, encouraging the backbone to rely on rotation-invariant depth cues.</p>
+    </details>
+    <details>
+      <summary>Are the trained checkpoints and the training code available?</summary>
+      <p>No. Because of the confidentiality policy of the company where the work was carried out, and because the author who maintains the repository has left that company, all trained checkpoints and most of the code, including all training code, cannot be released. The public repository contains the evaluation code for the four roll settings on five datasets, the inference-time model definitions, the paired bootstrap script and the SA-1B data-list scripts. The evaluation of public Depth Anything V2 and Distill Any Depth checkpoints can be run with it.</p>
+    </details>
+  </div>
+</section>
+
+<section id="code">
+  <div class="wrap">
+    <p class="eyebrow">Code &amp; release status</p>
+    <h2>What the repository contains, stated plainly</h2>
+    <p class="prose">The work was motivated by a real-world commercial application (mobile-captured indoor scene reconstruction, Figure 2 of the paper), and the company's confidentiality policy applies to its code and models. The author who maintains the repository has since left the company and no longer has access to the unreleased parts.</p>
+    <div class="two">
+      <div class="box yes">
+        <h3>Released</h3>
+        <ul>
+          <li><code>test.py</code>: evaluation of DAv2-architecture checkpoints on DIODE, ScanNet, ETH3D, KITTI and NYUv2 under the four roll settings; runs with public Depth Anything V2 and Distill Any Depth checkpoints.</li>
+          <li><code>test_hl.py</code>: the same evaluation with horizon leveling.</li>
+          <li><code>datasets/</code>: roll-rotated evaluation dataloaders, sample lists, SA-1B download and list scripts.</li>
+          <li><code>models/</code>: inference-time definitions of the depth model, the roll-angle predictor and the region-level ID heads.</li>
+          <li><code>paired_bootstrap.py</code>: paired stratified bootstrap confidence intervals.</li>
+          <li><code>_eval_others/</code>: the roll evaluation ported into GenPercept and Marigold; visualization scripts for PromptDA and MoGe.</li>
+        </ul>
+      </div>
+      <div class="box no">
+        <h3>Not released</h3>
+        <ul>
+          <li>All trained checkpoints: the re-implemented baseline, the re-balanced augmentation model, the ID-Constraint model and the roll-angle predictor.</li>
+          <li>All training code: distillation training, ID losses, local peak and local slope target generation, the DepthCues training dataloader, and the two-stage training of the roll-angle predictor.</li>
+        </ul>
+        <p>The scripts that evaluate these checkpoints are kept in <code>scripts/</code> as a record of the protocol.</p>
+      </div>
+    </div>
+
+    <div class="steps prose">
+      <h3>Run the roll-robustness evaluation on Depth Anything V2</h3>
+      <p>1. Create the environment.</p>
+<pre><code>conda create -n idcue -y python=3.10
+conda activate idcue
+pip install -r requirements.txt</code></pre>
+      <p>2. Download the five evaluation datasets from the GenPercept evaluation data on Hugging Face, and edit the dataset root paths that are hard-coded in <code>test.py</code>.</p>
+      <p>3. Put the public Depth-Anything-V2-Large checkpoint in <code>./checkpoints</code> and run:</p>
+<pre><code>bash ./scripts/test_dav2.sh</code></pre>
+      <p>Each run evaluates the four roll settings and writes logs and per-image CSV files. The <a href="https://github.com/KaihuaTang/Horizontal-Prior#readme">README</a> has the complete instructions, the paper-to-code map and all result tables.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Acknowledgement from the paper: this work was supported by the Fundamental Research Funds for the Central Universities at Tongji University under Grant No. 22120260376.</p>
+    <p>All numbers and figures on this page are taken from the paper (arXiv:2608.00678v1). Code in the repository is released under the Apache License 2.0; third-party code under <code>_eval_others/</code> keeps its original licenses.</p>
+    <p><a href="llms.txt">llms.txt</a> · <a href="https://github.com/KaihuaTang/Horizontal-Prior">GitHub</a> · <a href="https://arxiv.org/abs/2608.00678">arXiv</a> · <a href="zh/" hreflang="zh-CN" lang="zh-CN">中文版</a></p>
+  </div>
+</footer>
+
+<script src="main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://kaihuatang.github.io/Horizontal-Prior/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kaihuatang.github.io/Horizontal-Prior/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://kaihuatang.github.io/Horizontal-Prior/zh/"/>
+  </url>
+  <url>
+    <loc>https://kaihuatang.github.io/Horizontal-Prior/zh/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kaihuatang.github.io/Horizontal-Prior/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://kaihuatang.github.io/Horizontal-Prior/zh/"/>
+  </url>
+  <url>
+    <loc>https://kaihuatang.github.io/Horizontal-Prior/llms.txt</loc>
+  </url>
+</urlset>

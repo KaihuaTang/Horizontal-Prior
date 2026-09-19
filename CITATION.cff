@@ -1,0 +1,55 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "Horizontal-Prior: evaluation code for roll-robust monocular depth estimation"
+type: software
+authors:
+  - family-names: "Tang"
+    given-names: "Kaihua"
+  - family-names: "Xia"
+    given-names: "Ziqing"
+  - family-names: "Zheng"
+    given-names: "Xiaoxu"
+  - family-names: "Zhang"
+    given-names: "Xiaoxue"
+  - family-names: "Mi"
+    given-names: "Michael Bi"
+  - family-names: "Xu"
+    given-names: "Zhan"
+  - family-names: "Chen"
+    given-names: "Dave Zhenyu"
+repository-code: "https://github.com/KaihuaTang/Horizontal-Prior"
+url: "https://kaihuatang.github.io/Horizontal-Prior/"
+license: "Apache-2.0"
+keywords:
+  - "monocular depth estimation"
+  - "horizontal prior"
+  - "roll robustness"
+  - "long-tailed distribution"
+  - "Invariant Depth Constraint"
+  - "horizon leveling"
+preferred-citation:
+  type: generic
+  title: "Breaking the Horizontal Prior: From Long-Tailed Orientation Bias to Roll-Robust Monocular Depth Estimation"
+  authors:
+    - family-names: "Tang"
+      given-names: "Kaihua"
+    - family-names: "Xia"
+      given-names: "Ziqing"
+    - family-names: "Zheng"
+      given-names: "Xiaoxu"
+    - family-names: "Zhang"
+      given-names: "Xiaoxue"
+    - family-names: "Mi"
+      given-names: "Michael Bi"
+    - family-names: "Xu"
+      given-names: "Zhan"
+    - family-names: "Chen"
+      given-names: "Dave Zhenyu"
+  year: 2026
+  month: 8
+  url: "https://arxiv.org/abs/2608.00678"
+  notes: "arXiv preprint arXiv:2608.00678"
+  identifiers:
+    - type: other
+      value: "arXiv:2608.00678"
+      description: "arXiv preprint"
